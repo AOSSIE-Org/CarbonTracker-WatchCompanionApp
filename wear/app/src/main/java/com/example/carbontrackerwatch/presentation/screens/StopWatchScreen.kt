@@ -1,5 +1,6 @@
 package com.example.carbontrackerwatch.presentation.screens
 
+import android.os.SystemClock
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -33,8 +34,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.wear.compose.material.Icon
-import androidx.wear.compose.material.Text
+import androidx.wear.compose.material3.Icon
+import androidx.wear.compose.material3.Text
 import com.example.carbontrackerwatch.presentation.ui.LabelGray
 import com.example.carbontrackerwatch.presentation.ui.PauseBg
 import com.example.carbontrackerwatch.presentation.ui.PauseIconColor
@@ -48,11 +49,23 @@ fun StopwatchScreen() {
 
     var elapsedMillis by remember { mutableLongStateOf(0L) }
     var isRunning by remember { mutableStateOf(false) }
+    var isStarted by remember { mutableStateOf(false) }
+    var startTime by remember { mutableLongStateOf(0L) }
+    var pauseTime by remember { mutableLongStateOf(0L) }
 
     LaunchedEffect(isRunning) {
         while (isRunning) {
+            if (!isStarted) {
+                if (pauseTime > 0L) {
+                    startTime = SystemClock.elapsedRealtime() - pauseTime
+                    pauseTime = 0L
+                } else {
+                    startTime = SystemClock.elapsedRealtime()
+                }
+                isStarted = true
+            }
+            elapsedMillis = SystemClock.elapsedRealtime() - startTime
             delay(1000L)
-            elapsedMillis += 1000L
         }
     }
 
@@ -80,7 +93,7 @@ fun StopwatchScreen() {
             )
 
             Row(
-                horizontalArrangement = Arrangement.spacedBy(14.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(horizontal = 18.dp)
             ) {
@@ -98,6 +111,8 @@ fun StopwatchScreen() {
                         onClick = {
                             elapsedMillis = 0L
                             isRunning = false
+                            isStarted = false
+                            pauseTime = 0L
                         },
                     )
                     Spacer(modifier = Modifier.height(4.dp))
@@ -121,7 +136,7 @@ fun StopwatchScreen() {
                         iconColor = Color.White,
                         icon = Icons.Filled.PlayArrow,
                         contentDescription = "Start",
-                        diameter = 52.dp,
+                        diameter = 54.dp,
                         onClick = {
                             isRunning = true
                         },
@@ -151,6 +166,8 @@ fun StopwatchScreen() {
                         diameter = 46.dp,
                         onClick = {
                             isRunning = false
+                            isStarted = false
+                            pauseTime = elapsedMillis
                         },
                     )
 

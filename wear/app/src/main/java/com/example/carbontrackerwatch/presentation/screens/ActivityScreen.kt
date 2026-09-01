@@ -18,9 +18,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.wear.compose.foundation.lazy.TransformingLazyColumn
-import androidx.wear.compose.material.Chip
-import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material3.Icon
+import androidx.wear.compose.material3.OutlinedButton
+import androidx.wear.compose.material3.ButtonDefaults
 import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.Text
 import com.example.carbontrackerwatch.data.activities
@@ -57,7 +57,7 @@ fun ActivityScreen(navController: NavController) {
             }
 
             items(activities.size) { i ->
-                Chip(
+                OutlinedButton(
                     onClick = { navController.navigate("stopwatch") },
                     icon = {
                         Icon(
@@ -81,15 +81,16 @@ fun ActivityScreen(navController: NavController) {
                             color = SecondaryText
                         )
                     },
-                    colors = ChipDefaults.chipColors(
-                        backgroundColor = ActivityChipBg
+                    colors = ButtonDefaults.buttonColors(
+                        ActivityChipBg
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 8.dp, vertical = 2.dp),
-                    border = ChipDefaults.outlinedChipBorder(
+                    border = ButtonDefaults.outlinedButtonBorder(
                         borderColor = ActivityChipBorder,
-                        borderWidth = 1.dp
+                        borderWidth = 1.dp,
+                        enabled = true
                     )
                 )
             }
