@@ -1,4 +1,4 @@
-package com.example.carbontrackerwatch.presentation.ui
+package org.aossie.carbontracker.presentation.ui
 
 
 import androidx.compose.ui.graphics.Color

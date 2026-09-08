@@ -1,10 +1,10 @@
-package com.example.carbontrackerwatch.presentation.theme
+package org.aossie.carbontracker.presentation.theme
 
 
 import androidx.compose.runtime.Composable
 import androidx.wear.compose.material3.MaterialTheme
-import com.example.carbontrackerwatch.presentation.ui.BackgroundCream
-import com.example.carbontrackerwatch.presentation.ui.PrimaryGreen
+import org.aossie.carbontracker.presentation.ui.BackgroundCream
+import org.aossie.carbontracker.presentation.ui.PrimaryGreen
 
 @Composable
 fun CarbonTrackerTheme(
