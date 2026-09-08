@@ -3,6 +3,7 @@ agp = "9.2.1"
 materialIconsExtended = "1.7.8"
 playServicesWearable = "20.0.1"
 kotlin = "2.2.10"
+ksp = "2.3.4"
 composeBom = "2024.09.00"
 composeMaterial3 = "1.5.6"
 composeFoundation = "1.5.6"
@@ -11,6 +12,7 @@ wearToolingPreview = "1.0.0"
 activityCompose = "1.13.0"
 coreSplashscreen = "1.2.0"
 wearComposeNavigation = "1.6.2"
+room = "3.0.2"
 
 [libraries]
 material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
@@ -29,8 +31,11 @@ wear-tooling-preview = { group = "androidx.wear", name = "wear-tooling-preview",
 activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashscreen" }
 wear-compose-navigation = { group = "androidx.wear.compose", name = "compose-navigation", version.ref = "wearComposeNavigation"  }
+room-runtime = { group = "androidx.room3", name = "room3-runtime", version.ref = "room" }
+room-compiler = { group = "androidx.room3", name = "room3-compiler", version.ref = "room" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 
