@@ -1,0 +1,3 @@
+<full-backup-content>
+    <exclude domain="database" path="carbontracker_watch.db"/>
+</full-backup-content>

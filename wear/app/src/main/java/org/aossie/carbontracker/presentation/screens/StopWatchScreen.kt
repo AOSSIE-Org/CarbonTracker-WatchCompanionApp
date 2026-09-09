@@ -165,9 +165,11 @@ fun StopwatchScreen() {
                         contentDescription = "Pause",
                         diameter = 46.dp,
                         onClick = {
+                            val currentElapsed = SystemClock.elapsedRealtime() - startTime
+                            elapsedMillis = currentElapsed
+                            pauseTime = currentElapsed
                             isRunning = false
                             isStarted = false
-                            pauseTime = elapsedMillis
                         },
                     )
 
@@ -182,8 +184,6 @@ fun StopwatchScreen() {
                     )
 
                 }
-
-
             }
         }
     }
