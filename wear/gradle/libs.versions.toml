@@ -13,6 +13,7 @@ activityCompose = "1.13.0"
 coreSplashscreen = "1.2.0"
 wearComposeNavigation = "1.6.2"
 room = "3.0.2"
+healthServices = "1.1.0-rc02"
 
 [libraries]
 material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
@@ -33,6 +34,7 @@ core-splashscreen = { group = "androidx.core", name = "core-splashscreen", versi
 wear-compose-navigation = { group = "androidx.wear.compose", name = "compose-navigation", version.ref = "wearComposeNavigation"  }
 room-runtime = { group = "androidx.room3", name = "room3-runtime", version.ref = "room" }
 room-compiler = { group = "androidx.room3", name = "room3-compiler", version.ref = "room" }
+health-services-client = { module = "androidx.health:health-services-client", version.ref = "healthServices" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

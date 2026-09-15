@@ -9,8 +9,9 @@ data class ActivityEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val activityType: String,
     val startTime: Long,
+    val heartRate: Double? = null,
     val endTime: Long? = null,
-    val distance: Float = 0f,
-    val caloriesBurned: Float = 0f,
+    val distance: Double = 0.0,
+    val caloriesBurned: Double = 0.0,
     val isSynced: Boolean = false
 )

@@ -55,6 +55,7 @@ dependencies {
     implementation(libs.wear.tooling.preview)
     implementation(libs.material.icons.extended)
     implementation(libs.wear.compose.navigation)
+    implementation(libs.health.services.client)
     implementation(libs.room.runtime)
     ksp(libs.room.compiler)
     androidTestImplementation(platform(libs.compose.bom))
