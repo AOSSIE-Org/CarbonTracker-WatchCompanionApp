@@ -59,7 +59,6 @@ class HealthServicesManager() {
                 dataType: DeltaDataType<*, *>,
                 availability: Availability
             ) {
-                // Handle availability if needed
                 Log.d(
                     "HealthServices",
                     "Heart rate availability: $availability"
@@ -68,14 +67,6 @@ class HealthServicesManager() {
 
             override fun onDataReceived(data: DataPointContainer) {
                 val heartRateData = data.getData(DataType.HEART_RATE_BPM)
-
-                Log.d(
-                    "HealthServices",
-                    "Received heart rate data: ${heartRateData[heartRateData.size - 1].value}"
-                )
-
-                // Get heart rate here
-
                 if (heartRateData.isNotEmpty() && !alreadyResponded) {
                     val value = heartRateData.last().value
                     Log.d("HealthServices", "Received heart rate data: $value")

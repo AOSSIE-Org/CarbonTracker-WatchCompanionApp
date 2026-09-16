@@ -57,6 +57,13 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.aossie.carbontracker.providers.ExerciseStateHolder
 import org.aossie.carbontracker.services.ExerciseService
+import android.Manifest
+import android.content.pm.PackageManager
+import android.health.connect.HealthPermissions
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 
 @Composable
 fun StopwatchScreen(exerciseType: ExerciseType) {
@@ -113,157 +120,204 @@ fun StopwatchScreen(exerciseType: ExerciseType) {
         }
     }
 
+    val requiredPermissions = remember {
+        buildList {
+            add(Manifest.permission.ACCESS_FINE_LOCATION)
+            add(Manifest.permission.ACTIVITY_RECOGNITION)
+            if (Build.VERSION.SDK_INT >= 36) {
+                add(HealthPermissions.READ_HEART_RATE)
+            } else {
+                add(Manifest.permission.BODY_SENSORS)
+            }
+        }
+    }
+
+    fun hasAllPermissions(): Boolean =
+        requiredPermissions.all {
+            ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
+        }
+
+    var hasAllPermissions by remember { mutableStateOf(hasAllPermissions()) }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { results ->
+        hasAllPermissions = results.values.all { it }
+    }
+
+
     Box(
         modifier = Modifier
             .fillMaxSize(),
         contentAlignment = Alignment.Center,
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(
-                text = "TIME ELAPSED",
-                color = LabelGray,
-                fontSize = 13.sp,
-            )
-
-            Text(
-                text = formatElapsed(elapsedMillis),
-                color = PrimaryGreen,
-                fontSize = 34.sp,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.padding(top = 6.dp, bottom = 20.dp),
-            )
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(horizontal = 18.dp)
+        if (!hasAllPermissions) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                if (ongoingActivity) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center,
-                        modifier = Modifier.weight(1f),
-                    ) {
+                Text(
+                    text = "Please grant all required permissions to use the stopwatch.",
+                    color = LabelGray,
+                    fontSize = 14.sp,
+                    modifier = Modifier.padding(16.dp),
+                    textAlign = TextAlign.Center
+                )
+                Text(
+                    "Grant Permissions",
+                    color = PrimaryGreen,
+                    fontSize = 14.sp,
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .clickable { permissionLauncher.launch(requiredPermissions.toTypedArray()) }
+                )
+            }
+        } else {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(
+                    text = "TIME ELAPSED",
+                    color = LabelGray,
+                    fontSize = 13.sp,
+                )
 
-                        RoundControlButton(
-                            backgroundColor = StopBg,
-                            iconColor = StopRed,
-                            icon = Icons.Filled.Stop,
-                            contentDescription = "Stop",
-                            diameter = 46.dp,
-                            onClick = {
-                                elapsedMillis = 0L
-                                isRunning = false
-                                isStarted = false
-                                pauseTime = 0L
+                Text(
+                    text = formatElapsed(elapsedMillis),
+                    color = PrimaryGreen,
+                    fontSize = 34.sp,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.padding(top = 6.dp, bottom = 20.dp),
+                )
 
-                                exerciseService?.let { service ->
-                                    coroutineScope.launch {
-                                        service.endExercise()
-                                    }
-                                }
-
-                            },
-                            enabled = exerciseState != ExerciseState.USER_PAUSING
-
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-
-                        Text(
-                            "Stop",
-                            color = StopRed,
-                            fontSize = 10.sp,
-                            modifier = Modifier.width(52.dp),
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
-
-
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                    modifier = Modifier.weight(1f),
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(horizontal = 18.dp)
                 ) {
-                    RoundControlButton(
-                        backgroundColor = PrimaryGreen,
-                        iconColor = Color.White,
-                        icon = Icons.Filled.PlayArrow,
-                        contentDescription = "Start",
-                        diameter = 54.dp,
-                        onClick = {
-                            isRunning = true
-                            exerciseService?.let { service ->
-                                coroutineScope.launch {
-                                    if (exerciseState == ExerciseState.USER_PAUSED)
-                                        service.resumeExercise()
-                                    else {
-                                        service.startExercise(exerciseType)
+                    if (ongoingActivity) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
+                            modifier = Modifier.weight(1f),
+                        ) {
+
+                            RoundControlButton(
+                                backgroundColor = StopBg,
+                                iconColor = StopRed,
+                                icon = Icons.Filled.Stop,
+                                contentDescription = "Stop",
+                                diameter = 46.dp,
+                                onClick = {
+
+                                    exerciseService?.let { service ->
+                                        coroutineScope.launch {
+                                            if (service.endExercise()) {
+                                                elapsedMillis = 0L
+                                                isRunning = false
+                                                isStarted = false
+                                                pauseTime = 0L
+                                            }
+                                        }
                                     }
 
-                                }
-                            }
+                                },
+                                enabled = exerciseService != null && exerciseState != ExerciseState.USER_PAUSING
 
-                        },
-                        enabled = exerciseState != ExerciseState.ACTIVE
-                    )
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
 
-                    Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                "Stop",
+                                color = StopRed,
+                                fontSize = 10.sp,
+                                modifier = Modifier.width(52.dp),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
 
-                    Text(
-                        "Start",
-                        color = PrimaryGreen,
-                        fontSize = 10.sp,
-                        modifier = Modifier.width(64.dp),
-                        textAlign = TextAlign.Center
-                    )
-                }
-                if (ongoingActivity) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center,
                         modifier = Modifier.weight(1f),
                     ) {
                         RoundControlButton(
-                            backgroundColor = PauseBg,
-                            iconColor = PauseIconColor,
-                            icon = Icons.Filled.Pause,
-                            contentDescription = "Pause",
-                            diameter = 46.dp,
+                            backgroundColor = PrimaryGreen,
+                            iconColor = Color.White,
+                            icon = Icons.Filled.PlayArrow,
+                            contentDescription = "Start",
+                            diameter = 54.dp,
                             onClick = {
-                                val currentElapsed = SystemClock.elapsedRealtime() - startTime
-                                elapsedMillis = currentElapsed
-                                pauseTime = currentElapsed
-                                isRunning = false
-                                isStarted = false
-
                                 exerciseService?.let { service ->
                                     coroutineScope.launch {
-                                        service.pauseExercise()
+                                        val ok = if (exerciseState == ExerciseState.USER_PAUSED)
+                                            service.resumeExercise()
+                                        else
+                                            service.startExercise(exerciseType)
+
+                                        if (ok) isRunning = true
                                     }
                                 }
-
                             },
-                            enabled = exerciseState != ExerciseState.USER_PAUSED
+                            enabled = exerciseService != null && exerciseState != ExerciseState.ACTIVE
                         )
 
                         Spacer(modifier = Modifier.height(4.dp))
 
                         Text(
-                            "Pause",
-                            color = LabelGray,
+                            "Start",
+                            color = PrimaryGreen,
                             fontSize = 10.sp,
-                            modifier = Modifier.width(52.dp),
+                            modifier = Modifier.width(64.dp),
                             textAlign = TextAlign.Center
                         )
-
                     }
-                }
+                    if (ongoingActivity) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            RoundControlButton(
+                                backgroundColor = PauseBg,
+                                iconColor = PauseIconColor,
+                                icon = Icons.Filled.Pause,
+                                contentDescription = "Pause",
+                                diameter = 46.dp,
+                                onClick = {
+                                    val currentElapsed = SystemClock.elapsedRealtime() - startTime
+                                    exerciseService?.let { service ->
+                                        coroutineScope.launch {
+                                            if (service.pauseExercise()) {
+                                                elapsedMillis = currentElapsed
+                                                pauseTime = currentElapsed
+                                                isRunning = false
+                                                isStarted = false
+                                            }
+                                        }
+                                    }
+                                },
+                                enabled = exerciseService != null && exerciseState != ExerciseState.USER_PAUSED
+                            )
 
+                            Spacer(modifier = Modifier.height(4.dp))
+
+                            Text(
+                                "Pause",
+                                color = LabelGray,
+                                fontSize = 10.sp,
+                                modifier = Modifier.width(52.dp),
+                                textAlign = TextAlign.Center
+                            )
+
+                        }
+                    }
+
+                }
             }
         }
+
+
     }
 }
 
