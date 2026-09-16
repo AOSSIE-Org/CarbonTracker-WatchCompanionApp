@@ -11,7 +11,7 @@ interface ActivityDao {
     suspend fun startActivity(activity: ActivityEntity): Long
 
     @Query("SELECT * FROM activity_data WHERE id = :id")
-    suspend fun getActiveActivity(id: Long): ActivityEntity?
+    suspend fun getActivity(id: Long): ActivityEntity?
 
     @Query(
         """

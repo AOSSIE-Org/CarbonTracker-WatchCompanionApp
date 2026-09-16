@@ -15,4 +15,5 @@ object HealthClientProvider {
     fun getClient(): HealthServicesClient {
         return client
     }
+
 }
