@@ -6,10 +6,15 @@ import com.google.android.gms.wearable.Wearable
 import com.google.android.gms.wearable.WearableListenerService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 
 
 class WearListenerService : WearableListenerService() {
+
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onCreate() {
         super.onCreate()
@@ -20,6 +25,15 @@ class WearListenerService : WearableListenerService() {
         )
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        serviceScope.cancel()
+        Log.d(
+            "WearListenerService",
+            "WEAR SERVICE DESTROYED"
+        )
+    }
+
     override fun onMessageReceived(messageEvent: MessageEvent) {
 
         Log.d(
@@ -27,28 +41,7 @@ class WearListenerService : WearableListenerService() {
             "MESSAGE RECEIVED: ${messageEvent.path}"
         )
 
-        if (messageEvent.path == "/requestWatchData") {
-
-            Wearable.getMessageClient(this)
-                .sendMessage(
-                    messageEvent.sourceNodeId,
-                    "/watchData",
-                    "Watch Connected".toByteArray()
-                )
-                .addOnSuccessListener {
-                    Log.d(
-                        "WearListenerService",
-                        "Sent /watchData successfully"
-                    )
-                }
-                .addOnFailureListener {
-                    Log.e(
-                        "WearListenerService",
-                        "Failed to send /watchData",
-                        it
-                    )
-                }
-        } else if (messageEvent.path == "/requestHeartRate") {
+        if (messageEvent.path == "/requestHeartRate") {
             // Handle heart rate request
             Log.d(
                 "WearListenerService",
@@ -56,7 +49,7 @@ class WearListenerService : WearableListenerService() {
             )
 
             val healthServicesManager = HealthServicesManager()
-            CoroutineScope(Dispatchers.IO).launch {
+            serviceScope.launch {
 
                 val supportsHeartRate = healthServicesManager.checkCapabilities()
                 if (!supportsHeartRate) {
@@ -97,29 +90,57 @@ class WearListenerService : WearableListenerService() {
                 "Received request for exercise data"
             )
 
-            val healthServicesManager = HealthServicesManager()
+            val exerciseManager = ExerciseManager(this)
 
-            val exerciseData = ""
+            serviceScope.launch {
 
-            Wearable.getMessageClient(this)
-                .sendMessage(
-                    messageEvent.sourceNodeId,
-                    "/exerciseData",
-                    "$exerciseData".toByteArray()
-                )
-                .addOnSuccessListener {
-                    Log.d(
-                        "WearListenerService",
-                        "Sent /exerciseData successfully"
-                    )
-                }
-                .addOnFailureListener {
+                val exerciseData = exerciseManager.getUnsyncedExercises()
+                if (exerciseData == null) {
                     Log.e(
                         "WearListenerService",
-                        "Failed to send /exerciseData",
-                        it
+                        "Failed to fetch unsynced exercise data"
                     )
+                    return@launch
                 }
+
+                val exerciseJson = try {
+                    Json.encodeToString(exerciseData)
+
+                } catch (e: Exception) {
+                    Log.e("WearListenerService", "Failed to encode exercise data", e)
+                    return@launch
+                }
+
+                Log.d("WearListenerService", "Encoded exercise data to JSON: $exerciseJson")
+
+                Wearable.getMessageClient(this@WearListenerService)
+                    .sendMessage(
+                        messageEvent.sourceNodeId,
+                        "/exerciseData",
+                        exerciseJson.toByteArray()
+                    )
+                    .addOnSuccessListener {
+                        Log.d("WearListenerService", "Sent /exerciseData successfully")
+                        serviceScope.launch {
+                            try {
+                                exerciseManager.markExercisesAsSynced(exerciseData.map { it.id })
+                            } catch (e: Exception) {
+                                Log.e(
+                                    "WearListenerService",
+                                    "Failed to mark exercises as synced",
+                                    e
+                                )
+                            }
+                        }
+                    }
+                    .addOnFailureListener {
+                        Log.e(
+                            "WearListenerService",
+                            "Failed to send /exerciseData",
+                            it
+                        )
+                    }
+            }
         }
     }
 }

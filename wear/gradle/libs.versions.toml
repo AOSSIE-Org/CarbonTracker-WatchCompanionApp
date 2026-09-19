@@ -14,6 +14,7 @@ coreSplashscreen = "1.2.0"
 wearComposeNavigation = "1.6.2"
 room = "3.0.2"
 healthServices = "1.1.0-rc02"
+kotlinx-serialization = "1.11.0"
 
 [libraries]
 material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
@@ -35,9 +36,11 @@ wear-compose-navigation = { group = "androidx.wear.compose", name = "compose-nav
 room-runtime = { group = "androidx.room3", name = "room3-runtime", version.ref = "room" }
 room-compiler = { group = "androidx.room3", name = "room3-compiler", version.ref = "room" }
 health-services-client = { module = "androidx.health:health-services-client", version.ref = "healthServices" }
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 

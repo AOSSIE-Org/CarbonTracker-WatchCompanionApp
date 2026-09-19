@@ -5,6 +5,8 @@ import android.util.Log
 import androidx.health.services.client.awaitWithException
 import androidx.health.services.client.data.DataType
 import androidx.health.services.client.data.ExerciseType
+import org.aossie.carbontracker.data.database.ActivityEntity
+import org.aossie.carbontracker.data.database.AppDatabase
 import org.aossie.carbontracker.providers.HealthClientProvider
 
 class ExerciseManager(private val context: Context) {
@@ -58,5 +60,38 @@ class ExerciseManager(private val context: Context) {
 
         return supportedExercises
     }
+
+    suspend fun getUnsyncedExercises(): List<ActivityEntity>? {
+        try {
+            val db = AppDatabase.getInstance(context).activityDao()
+            val unsyncedExercises = db.getUnsyncedActivities()
+
+            Log.d("ExerciseService", "Unsynced exercises: $unsyncedExercises")
+            return unsyncedExercises
+
+        } catch (exception: Exception) {
+            Log.d(
+                "ExerciseService",
+                "Error fetching unsynced exercises: ${exception.message}"
+            )
+            return null
+        }
+    }
+
+    suspend fun markExercisesAsSynced(ids: List<Long>) {
+        try {
+            val db = AppDatabase.getInstance(context).activityDao()
+            db.markSynced(ids)
+            Log.d("ExerciseService", "Marked exercises as synced: $ids")
+        } catch (exception: Exception) {
+            Log.d(
+                "ExerciseService",
+                "Error marking exercises as synced: ${exception.message}"
+            )
+        }
+
+    }
+
+
 }
 
