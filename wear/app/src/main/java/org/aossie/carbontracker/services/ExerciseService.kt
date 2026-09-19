@@ -73,7 +73,6 @@ class ExerciseService : Service() {
             val exerciseStateInfo = update.exerciseStateInfo
             val latestMetrics = update.latestMetrics
 
-
             heartRate = latestMetrics.getData(DataType.HEART_RATE_BPM).lastOrNull()?.value
             calories = latestMetrics.getData(DataType.CALORIES_TOTAL)?.total
             distance = latestMetrics.getData(DataType.DISTANCE).lastOrNull()?.value
@@ -82,15 +81,32 @@ class ExerciseService : Service() {
                 return
             }
 
+            if (exerciseStateInfo.state == ExerciseState.ENDING || exerciseStateInfo.state == ExerciseState.ENDED) {
+                val id = currentActivityId
+                if (id != null) {
+                    coroutineScope.launch {
+                        activityDao.stopActivity(id, System.currentTimeMillis())
+                        val activity = activityDao.getActivity(id)
+                        if (activity != null) {
+                            activityDao.updateMetrics(
+                                id,
+                                distance = distance ?: activity.distance,
+                                calories = calories ?: activity.caloriesBurned,
+                                heartRate = heartRate ?: activity.heartRate,
+                                lastUpdated = System.currentTimeMillis()
+                            )
+                        }
+                    }
+                }
+                ongoingActivity = false
+                currentActivityId = null
+                return
+            }
 
             Log.d("ExerciseService", "Exercise state: ${exerciseStateInfo.state}")
-
             Log.d("ExerciseService", "Heart rate: $heartRate")
-
             Log.d("ExerciseService", "Calories: $calories")
-
             Log.d("ExerciseService", "Distance: $distance")
-
         }
 
 
@@ -151,7 +167,8 @@ class ExerciseService : Service() {
                             id = id,
                             distance = distance!!,
                             calories = calories!!,
-                            heartRate = heartRate
+                            heartRate = heartRate,
+                            lastUpdated = System.currentTimeMillis()
                         )
                     }
                 }
@@ -175,7 +192,8 @@ class ExerciseService : Service() {
                     currentActivityId as Long,
                     distance = distance ?: activity.distance,
                     calories = calories ?: activity.caloriesBurned,
-                    heartRate = heartRate ?: activity.heartRate
+                    heartRate = heartRate ?: activity.heartRate,
+                    lastUpdated = System.currentTimeMillis()
                 )
             }
             exerciseClient.pauseExerciseAsync().awaitWithException()
@@ -211,7 +229,8 @@ class ExerciseService : Service() {
                         id,
                         distance = distance ?: activity.distance,
                         calories = calories ?: activity.caloriesBurned,
-                        heartRate = heartRate ?: activity.heartRate
+                        heartRate = heartRate ?: activity.heartRate,
+                        lastUpdated = System.currentTimeMillis(),
                     )
                 }
             }
@@ -229,6 +248,18 @@ class ExerciseService : Service() {
         super.onCreate()
         val db = AppDatabase.getInstance(applicationContext)
         activityDao = db.activityDao()
+        coroutineScope.launch {
+            val orphanedActivities = activityDao.getAllOrphanedActivities()
+            Log.d(
+                "ExerciseService",
+                "Found ${orphanedActivities.size} orphaned activities. Closing them."
+            )
+            orphanedActivities.forEach { activity ->
+                Log.d("ExerciseService", "Closing orphaned activity with ID: ${activity.id}")
+                activityDao.closeOrphanedActivity(activity.id)
+            }
+        }
+
         exerciseClient = HealthClientProvider.getClient().exerciseClient
         registerExerciseCallback()
     }

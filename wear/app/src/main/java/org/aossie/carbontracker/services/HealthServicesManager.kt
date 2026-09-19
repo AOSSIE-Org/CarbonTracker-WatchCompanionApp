@@ -48,7 +48,6 @@ class HealthServicesManager() {
 
         // Check if the device supports heart rate measurement
 
-        var heartRate: Double? = null
         var alreadyResponded = false
 
         Log.d("HealthServices", "Starting heart rate measurement")
