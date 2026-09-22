@@ -10,17 +10,35 @@ interface ActivityDao {
     @Insert
     suspend fun startActivity(activity: ActivityEntity): Long
 
-    @Query("SELECT * FROM activity_data WHERE endTime IS NULL LIMIT 1")
-    suspend fun getActiveActivity(): ActivityEntity?
+    @Query("SELECT * FROM activity_data WHERE id = :id")
+    suspend fun getActivity(id: Long): ActivityEntity?
+
+    @Query("SELECT * FROM activity_data WHERE endTime is NULL")
+    suspend fun getAllOrphanedActivities(): List<ActivityEntity>
 
     @Query(
         """
         UPDATE activity_data
-        SET distance = :distance, caloriesBurned = :calories, isSynced = 0
+        SET distance = :distance, caloriesBurned = :calories, heartRate = :heartRate, isSynced = 0, lastUpdated = :lastUpdated
         WHERE id = :id
     """
     )
-    suspend fun updateMetrics(id: Long, distance: Float, calories: Float)
+    suspend fun updateMetrics(
+        id: Long,
+        distance: Double,
+        calories: Double,
+        heartRate: Double?,
+        lastUpdated: Long
+    )
+
+    @Query(
+        """
+    UPDATE activity_data
+    SET endTime = lastUpdated, isSynced = 0
+    WHERE id = :id
+"""
+    )
+    suspend fun closeOrphanedActivity(id: Long)
 
     @Query("UPDATE activity_data SET endTime = :endTime WHERE id = :id")
     suspend fun stopActivity(id: Long, endTime: Long)
