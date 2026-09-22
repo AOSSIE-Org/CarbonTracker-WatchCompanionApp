@@ -1,4 +1,4 @@
-package com.example.carbontrackerwatch.presentation.screens
+package org.aossie.carbontracker.presentation.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -22,8 +22,8 @@ import androidx.navigation.NavController
 import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.Text
 import androidx.wear.compose.material3.TimeText
-import com.example.carbontrackerwatch.presentation.ui.OnPrimary
-import com.example.carbontrackerwatch.presentation.ui.PrimaryGreen
+import org.aossie.carbontracker.presentation.ui.OnPrimary
+import org.aossie.carbontracker.presentation.ui.PrimaryGreen
 
 @Composable
 fun OnboardingScreen(

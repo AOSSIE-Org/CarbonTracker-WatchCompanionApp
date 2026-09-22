@@ -1,4 +1,4 @@
-package com.example.carbontrackerwatch.presentation.screens
+package org.aossie.carbontracker.presentation.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -23,12 +23,12 @@ import androidx.wear.compose.material3.OutlinedButton
 import androidx.wear.compose.material3.ButtonDefaults
 import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.Text
-import com.example.carbontrackerwatch.data.activities
-import com.example.carbontrackerwatch.presentation.ui.ActivityChipBg
-import com.example.carbontrackerwatch.presentation.ui.ActivityChipBorder
-import com.example.carbontrackerwatch.presentation.ui.ActivityIconBg
-import com.example.carbontrackerwatch.presentation.ui.PrimaryGreen
-import com.example.carbontrackerwatch.presentation.ui.SecondaryText
+import org.aossie.carbontracker.data.activities
+import org.aossie.carbontracker.presentation.ui.ActivityChipBg
+import org.aossie.carbontracker.presentation.ui.ActivityChipBorder
+import org.aossie.carbontracker.presentation.ui.ActivityIconBg
+import org.aossie.carbontracker.presentation.ui.PrimaryGreen
+import org.aossie.carbontracker.presentation.ui.SecondaryText
 
 @Composable
 fun ActivityScreen(navController: NavController) {

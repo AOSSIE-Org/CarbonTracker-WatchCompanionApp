@@ -1,4 +1,4 @@
-package com.example.carbontrackerwatch.presentation.screens
+package org.aossie.carbontracker.presentation.screens
 
 import android.os.SystemClock
 import androidx.compose.foundation.background
@@ -36,12 +36,12 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.wear.compose.material3.Icon
 import androidx.wear.compose.material3.Text
-import com.example.carbontrackerwatch.presentation.ui.LabelGray
-import com.example.carbontrackerwatch.presentation.ui.PauseBg
-import com.example.carbontrackerwatch.presentation.ui.PauseIconColor
-import com.example.carbontrackerwatch.presentation.ui.PrimaryGreen
-import com.example.carbontrackerwatch.presentation.ui.StopBg
-import com.example.carbontrackerwatch.presentation.ui.StopRed
+import org.aossie.carbontracker.presentation.ui.LabelGray
+import org.aossie.carbontracker.presentation.ui.PauseBg
+import org.aossie.carbontracker.presentation.ui.PauseIconColor
+import org.aossie.carbontracker.presentation.ui.PrimaryGreen
+import org.aossie.carbontracker.presentation.ui.StopBg
+import org.aossie.carbontracker.presentation.ui.StopRed
 import kotlinx.coroutines.delay
 
 @Composable
@@ -165,9 +165,11 @@ fun StopwatchScreen() {
                         contentDescription = "Pause",
                         diameter = 46.dp,
                         onClick = {
+                            val currentElapsed = SystemClock.elapsedRealtime() - startTime
+                            elapsedMillis = currentElapsed
+                            pauseTime = currentElapsed
                             isRunning = false
                             isStarted = false
-                            pauseTime = elapsedMillis
                         },
                     )
 
@@ -182,8 +184,6 @@ fun StopwatchScreen() {
                     )
 
                 }
-
-
             }
         }
     }

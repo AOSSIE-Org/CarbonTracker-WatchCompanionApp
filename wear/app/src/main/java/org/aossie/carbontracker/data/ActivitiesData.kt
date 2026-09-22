@@ -1,4 +1,4 @@
-package com.example.carbontrackerwatch.data
+package org.aossie.carbontracker.data
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.DirectionsBike

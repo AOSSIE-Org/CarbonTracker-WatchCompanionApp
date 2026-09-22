@@ -1,10 +1,11 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.ksp)
 }
 
 android {
-    namespace = "com.example.carbontrackerwatch"
+    namespace = "org.aossie.carbontracker"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -12,7 +13,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.carbontrackerwatch"
+        applicationId = "org.aossie.carbontracker"
         minSdk = 30
         targetSdk = 36
         versionCode = 1
@@ -40,6 +41,7 @@ android {
 }
 
 dependencies {
+
     implementation(platform(libs.compose.bom))
     implementation(libs.activity.compose)
     implementation(libs.compose.foundation)
@@ -53,8 +55,11 @@ dependencies {
     implementation(libs.wear.tooling.preview)
     implementation(libs.material.icons.extended)
     implementation(libs.wear.compose.navigation)
+    implementation(libs.room.runtime)
+    ksp(libs.room.compiler)
     androidTestImplementation(platform(libs.compose.bom))
     androidTestImplementation(libs.ui.test.junit4)
     debugImplementation(libs.ui.test.manifest)
     debugImplementation(libs.ui.tooling)
+
 }
