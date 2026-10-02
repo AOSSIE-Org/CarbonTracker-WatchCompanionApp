@@ -1,7 +1,6 @@
 package org.aossie.carbontracker.presentation.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -22,6 +21,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -53,9 +53,11 @@ fun ActivityScreen(navController: NavController) {
     var retryCount by remember { mutableIntStateOf(0) }
 
 
+    val context = LocalContext.current
+
     LaunchedEffect(retryCount) {
         isLoading = true
-        activities = ExerciseManager(navController.context).checkAvailableExercises()
+        activities = ExerciseManager(context).checkAvailableExercises()
         isLoading = false
     }
 

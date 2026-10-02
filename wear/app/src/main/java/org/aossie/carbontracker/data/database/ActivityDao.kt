@@ -40,7 +40,7 @@ interface ActivityDao {
     )
     suspend fun closeOrphanedActivity(id: Long)
 
-    @Query("UPDATE activity_data SET endTime = :endTime WHERE id = :id")
+    @Query("UPDATE activity_data SET endTime = :endTime ,isSynced = 0 WHERE id = :id")
     suspend fun stopActivity(id: Long, endTime: Long)
 
     @Query("SELECT * FROM activity_data WHERE isSynced = 0")

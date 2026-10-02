@@ -84,6 +84,7 @@ class WearListenerService : WearableListenerService() {
             }
 
         } else if (messageEvent.path == "/requestExerciseData") {
+
             // Handle exercise data request
             Log.d(
                 "WearListenerService",
@@ -111,7 +112,10 @@ class WearListenerService : WearableListenerService() {
                     return@launch
                 }
 
-                Log.d("WearListenerService", "Encoded exercise data to JSON: $exerciseJson")
+                Log.d(
+                    "WearListenerService",
+                    "Encoded ${exerciseData.size} exercise records"
+                )
 
                 Wearable.getMessageClient(this@WearListenerService)
                     .sendMessage(
@@ -121,17 +125,6 @@ class WearListenerService : WearableListenerService() {
                     )
                     .addOnSuccessListener {
                         Log.d("WearListenerService", "Sent /exerciseData successfully")
-                        serviceScope.launch {
-                            try {
-                                exerciseManager.markExercisesAsSynced(exerciseData.map { it.id })
-                            } catch (e: Exception) {
-                                Log.e(
-                                    "WearListenerService",
-                                    "Failed to mark exercises as synced",
-                                    e
-                                )
-                            }
-                        }
                     }
                     .addOnFailureListener {
                         Log.e(
@@ -140,6 +133,38 @@ class WearListenerService : WearableListenerService() {
                             it
                         )
                     }
+            }
+        } else if (messageEvent.path == "/markExercisesAsSynced") {
+            // Handle mark exercises as synced request
+            Log.d(
+                "WearListenerService",
+                "Received request to mark exercises as synced"
+            )
+
+            val exerciseManager = ExerciseManager(this)
+
+            serviceScope.launch {
+                val idsToMark = try {
+                    Json.decodeFromString<List<Long>>(String(messageEvent.data))
+
+                } catch (e: Exception) {
+                    Log.e("WearListenerService", "Failed to decode IDs to mark as synced", e)
+                    return@launch
+                }
+
+                try {
+                    exerciseManager.markExercisesAsSynced(idsToMark)
+                    Log.d(
+                        "WearListenerService",
+                        "Marked ${idsToMark.size} exercises as synced"
+                    )
+                } catch (e: Exception) {
+                    Log.e(
+                        "WearListenerService",
+                        "Failed to mark exercises as synced",
+                        e
+                    )
+                }
             }
         }
     }

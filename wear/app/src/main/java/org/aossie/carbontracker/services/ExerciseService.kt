@@ -102,11 +102,6 @@ class ExerciseService : Service() {
                 currentActivityId = null
                 return
             }
-
-            Log.d("ExerciseService", "Exercise state: ${exerciseStateInfo.state}")
-            Log.d("ExerciseService", "Heart rate: $heartRate")
-            Log.d("ExerciseService", "Calories: $calories")
-            Log.d("ExerciseService", "Distance: $distance")
         }
 
 
@@ -146,15 +141,17 @@ class ExerciseService : Service() {
         try {
             exerciseClient.startExerciseAsync(config).awaitWithException()
             if (ongoingActivity) return false
-            ongoingActivity = true
-            coroutineScope.launch {
-                currentActivityId = activityDao.startActivity(
-                    ActivityEntity(
-                        startTime = System.currentTimeMillis(),
-                        activityType = exercise.name
-                    )
-                )
 
+            currentActivityId = activityDao.startActivity(
+                ActivityEntity(
+                    startTime = System.currentTimeMillis(),
+                    activityType = exercise.name
+                )
+            )
+
+            ongoingActivity = true
+
+            coroutineScope.launch {
                 while (ongoingActivity) {
 
                     delay(30_000) // 30 seconds
@@ -173,10 +170,13 @@ class ExerciseService : Service() {
                     }
                 }
             }
+
             return true
+
 
         } catch (e: Exception) {
             Log.d("ExerciseService", "Error starting exercise: ${e.message}")
+            endExercise()
             return false
         }
 
@@ -234,14 +234,16 @@ class ExerciseService : Service() {
                     )
                 }
             }
+
+            ongoingActivity = false
+            currentActivityId = null
+
+            return true
+
         } catch (e: Exception) {
             Log.d("ExerciseService", "Error ending exercise: ${e.message}")
             return false
-        } finally {
-            ongoingActivity = false
-            currentActivityId = null
         }
-        return true
     }
 
     override fun onCreate() {

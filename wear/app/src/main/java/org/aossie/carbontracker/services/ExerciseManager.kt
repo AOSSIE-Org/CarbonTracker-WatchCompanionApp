@@ -66,7 +66,10 @@ class ExerciseManager(private val context: Context) {
             val db = AppDatabase.getInstance(context).activityDao()
             val unsyncedExercises = db.getUnsyncedActivities()
 
-            Log.d("ExerciseService", "Unsynced exercises: $unsyncedExercises")
+            Log.d(
+                "ExerciseService",
+                "Unsynced exercise count: ${unsyncedExercises.size}"
+            )
             return unsyncedExercises
 
         } catch (exception: Exception) {
