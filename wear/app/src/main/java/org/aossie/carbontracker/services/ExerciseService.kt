@@ -86,6 +86,10 @@ class ExerciseService : Service() {
 
             if (exerciseStateInfo.state == ExerciseState.ENDING || exerciseStateInfo.state == ExerciseState.ENDED) {
                 val id = currentActivityId
+                val finalDistance = distance
+                val finalCalories = calories
+                val finalHeartRate = heartRate
+
                 if (id != null) {
                     coroutineScope.launch {
                         activityDao.stopActivity(id, System.currentTimeMillis())
@@ -93,9 +97,9 @@ class ExerciseService : Service() {
                         if (activity != null) {
                             activityDao.updateMetrics(
                                 id,
-                                distance = distance ?: activity.distance,
-                                calories = calories ?: activity.caloriesBurned,
-                                heartRate = heartRate ?: activity.heartRate,
+                                distance = finalDistance ?: activity.distance,
+                                calories = finalCalories ?: activity.caloriesBurned,
+                                heartRate = finalHeartRate ?: activity.heartRate,
                                 lastUpdated = System.currentTimeMillis()
                             )
                         }
@@ -234,6 +238,7 @@ class ExerciseService : Service() {
         try {
             exerciseClient.endExerciseAsync().awaitWithException()
             val id = currentActivityId
+
             if (id != null) {
                 activityDao.stopActivity(id, System.currentTimeMillis())
 
