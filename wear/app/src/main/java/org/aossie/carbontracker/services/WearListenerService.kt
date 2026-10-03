@@ -10,6 +10,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
+import org.aossie.carbontracker.data.models.ExerciseAcknowledgement
 
 
 class WearListenerService : WearableListenerService() {
@@ -144,19 +145,30 @@ class WearListenerService : WearableListenerService() {
             val exerciseManager = ExerciseManager(this)
 
             serviceScope.launch {
-                val idsToMark = try {
-                    Json.decodeFromString<List<Long>>(String(messageEvent.data))
-
+                val acknowledgements = try {
+                    Json.decodeFromString<List<ExerciseAcknowledgement>>(
+                        String(messageEvent.data)
+                    )
                 } catch (e: Exception) {
-                    Log.e("WearListenerService", "Failed to decode IDs to mark as synced", e)
+                    Log.e(
+                        "WearListenerService",
+                        "Failed to decode exercise acknowledgements",
+                        e
+                    )
                     return@launch
                 }
 
                 try {
-                    exerciseManager.markExercisesAsSynced(idsToMark)
+                    acknowledgements.forEach { acknowledgement ->
+                        exerciseManager.markExercisesAsSynced(
+                            acknowledgement.id,
+                            acknowledgement.lastUpdated
+                        )
+                    }
+
                     Log.d(
                         "WearListenerService",
-                        "Marked ${idsToMark.size} exercises as synced"
+                        "Processed ${acknowledgements.size} exercise acknowledgements"
                     )
                 } catch (e: Exception) {
                     Log.e(

@@ -46,8 +46,16 @@ interface ActivityDao {
     @Query("SELECT * FROM activity_data WHERE isSynced = 0")
     suspend fun getUnsyncedActivities(): List<ActivityEntity>
 
-    @Query("UPDATE activity_data SET isSynced = 1 WHERE id IN (:ids)")
-    suspend fun markSynced(ids: List<Long>)
+    @Query(
+        """
+    UPDATE activity_data
+    SET isSynced = 1
+    WHERE id = :id
+    AND lastUpdated = :lastUpdated
+"""
+    )
+
+    suspend fun markSynced(id: Long, lastUpdated: Long)
 
     @Query("DELETE FROM activity_data WHERE isSynced = 1")
     suspend fun clearSynced()

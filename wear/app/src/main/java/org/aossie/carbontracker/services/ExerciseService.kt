@@ -15,6 +15,7 @@ import androidx.health.services.client.data.ExerciseType
 import androidx.health.services.client.data.ExerciseUpdate
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
@@ -27,6 +28,8 @@ import org.aossie.carbontracker.providers.HealthClientProvider
 
 
 class ExerciseService : Service() {
+
+    private var metricWriterJob: Job? = null
 
     inner class LocalBinder : Binder() {
         fun getService(): ExerciseService = this@ExerciseService
@@ -98,6 +101,10 @@ class ExerciseService : Service() {
                         }
                     }
                 }
+
+                metricWriterJob?.cancel()
+                metricWriterJob = null
+
                 ongoingActivity = false
                 currentActivityId = null
                 return
@@ -139,6 +146,11 @@ class ExerciseService : Service() {
             isGpsEnabled = true,
         )
         try {
+
+            heartRate = null
+            calories = null
+            distance = null
+
             exerciseClient.startExerciseAsync(config).awaitWithException()
             if (ongoingActivity) return false
 
@@ -151,17 +163,21 @@ class ExerciseService : Service() {
 
             ongoingActivity = true
 
-            coroutineScope.launch {
+            val sessionId = currentActivityId!!
+
+            metricWriterJob = coroutineScope.launch {
                 while (ongoingActivity) {
 
                     delay(30_000) // 30 seconds
 
-                    val id = currentActivityId ?: continue
+                    if (!ongoingActivity || currentActivityId != sessionId) {
+                        break
+                    }
 
                     if (distance != null && calories != null) {
 
                         activityDao.updateMetrics(
-                            id = id,
+                            id = sessionId,
                             distance = distance!!,
                             calories = calories!!,
                             heartRate = heartRate,
@@ -234,6 +250,9 @@ class ExerciseService : Service() {
                     )
                 }
             }
+
+            metricWriterJob?.cancel()
+            metricWriterJob = null
 
             ongoingActivity = false
             currentActivityId = null
