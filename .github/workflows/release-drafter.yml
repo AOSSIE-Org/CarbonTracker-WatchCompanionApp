@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - master
+      - chore/wear-os-release
   pull_request:
     types: [closed]
 
@@ -14,7 +15,7 @@ permissions:
 
 jobs:
   update_release_draft:
-    if: ${{ github.repository_owner == 'AOSSIE-Org' }}
+#    if: ${{ github.repository_owner == 'AOSSIE-Org' }}
     runs-on: ubuntu-latest
     steps:
       - name: Run Release Drafter
