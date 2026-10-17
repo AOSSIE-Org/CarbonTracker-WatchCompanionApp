@@ -35,6 +35,8 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import androidx.wear.ongoing.OngoingActivity
 import androidx.wear.ongoing.Status
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.aossie.carbontracker.R
 import org.aossie.carbontracker.presentation.MainActivity
 
@@ -80,6 +82,8 @@ class ExerciseService : Service() {
     @Volatile
     private var pauseStarted = 0L
 
+    private val finalizeMutex = Mutex()
+
     fun elapsedMillis(): Long {
         if (startElapsed == 0L) return 0L
         val end = if (pauseStarted != 0L) pauseStarted else SystemClock.elapsedRealtime()
@@ -93,34 +97,22 @@ class ExerciseService : Service() {
         )
 
         val pi = PendingIntent.getActivity(
-            this, 0,
-            Intent(this, MainActivity::class.java)
-                .apply {
-                    flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
-                    putExtra("exercise_type", exercise.name)
-                },
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            this, 0, Intent(this, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
+                putExtra("exercise_type", exercise.name)
+            }, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val builder = NotificationCompat.Builder(this, channelId)
-            .setContentTitle("CarbonTracker")
-            .setContentText("Tracking ${exercise.name}")
-            .setSmallIcon(R.drawable.ic_exercise)
-            .setCategory(NotificationCompat.CATEGORY_WORKOUT)
-            .setContentIntent(pi)
-            .setOngoing(true)
+        val builder = NotificationCompat.Builder(this, channelId).setContentTitle("CarbonTracker")
+            .setContentText("Tracking ${exercise.name}").setSmallIcon(R.drawable.ic_exercise)
+            .setCategory(NotificationCompat.CATEGORY_WORKOUT).setContentIntent(pi).setOngoing(true)
 
-        val status = Status.Builder()
-            .addTemplate("#type# #time#")
+        val status = Status.Builder().addTemplate("#type# #time#")
             .addPart("type", Status.TextPart("Workout"))
-            .addPart("time", Status.StopwatchPart(SystemClock.elapsedRealtime()))
-            .build()
+            .addPart("time", Status.StopwatchPart(SystemClock.elapsedRealtime())).build()
 
-        OngoingActivity.Builder(applicationContext, notifId, builder)
-            .setTouchIntent(pi)
-            .setStatus(status)
-            .setStaticIcon(R.drawable.ic_exercise)
-            .build()
+        OngoingActivity.Builder(applicationContext, notifId, builder).setTouchIntent(pi)
+            .setStatus(status).setStaticIcon(R.drawable.ic_exercise).build()
             .apply(applicationContext)
 
         val type = if (Build.VERSION.SDK_INT >= 34) {
@@ -157,34 +149,16 @@ class ExerciseService : Service() {
                 return
             }
 
-            if (exerciseStateInfo.state == ExerciseState.ENDING || exerciseStateInfo.state == ExerciseState.ENDED) {
-                val id = currentActivityId
-                if (id != null) {
-                    coroutineScope.launch {
-                        activityDao.stopActivity(id, System.currentTimeMillis())
-                        val activity = activityDao.getActivity(id)
-                        if (activity != null) {
-                            activityDao.updateMetrics(
-                                id,
-                                distance = distance ?: activity.distance,
-                                calories = calories ?: activity.caloriesBurned,
-                                heartRate = heartRate ?: activity.heartRate,
-                                lastUpdated = System.currentTimeMillis()
-                            )
-                        }
+            if (exerciseStateInfo.state == ExerciseState.ENDED) {
+                coroutineScope.launch {
+                    try {
+                        finalizeActivity()
+                    } finally {
+                        shutDown()
                     }
                 }
-                ongoingActivity = false
-                currentActivityId = null
-                stopForeground(STOP_FOREGROUND_REMOVE)
-                stopSelf()
                 return
             }
-
-            Log.d("ExerciseService", "Exercise state: ${exerciseStateInfo.state}")
-            Log.d("ExerciseService", "Heart rate: $heartRate")
-            Log.d("ExerciseService", "Calories: $calories")
-            Log.d("ExerciseService", "Distance: $distance")
         }
 
 
@@ -210,9 +184,7 @@ class ExerciseService : Service() {
 
         // Types for which we want to receive metrics.
         val dataTypes = setOf(
-            DataType.HEART_RATE_BPM,
-            DataType.CALORIES_TOTAL,
-            DataType.DISTANCE
+            DataType.HEART_RATE_BPM, DataType.CALORIES_TOTAL, DataType.DISTANCE
         )
 
         val config = ExerciseConfig(
@@ -221,12 +193,14 @@ class ExerciseService : Service() {
             isAutoPauseAndResumeEnabled = false,
             isGpsEnabled = true,
         )
+
+        var sessionStarted = false
+
         try {
             startOngoing(exercise)
             exerciseClient.startExerciseAsync(config).awaitWithException()
+            sessionStarted = true
             if (ongoingActivity) {
-                stopForeground(STOP_FOREGROUND_REMOVE)
-                stopSelf()
                 return false
             }
             ongoingActivity = true
@@ -235,8 +209,7 @@ class ExerciseService : Service() {
             pauseStarted = 0L
             currentActivityId = activityDao.startActivity(
                 ActivityEntity(
-                    startTime = System.currentTimeMillis(),
-                    activityType = exercise.name
+                    startTime = System.currentTimeMillis(), activityType = exercise.name
                 )
             )
             coroutineScope.launch {
@@ -263,17 +236,21 @@ class ExerciseService : Service() {
 
         } catch (e: Exception) {
             Log.d("ExerciseService", "Error starting exercise: ${e.message}")
-            stopForeground(STOP_FOREGROUND_REMOVE)
-            stopSelf()
+            if (sessionStarted) {
+                try {
+                    exerciseClient.endExerciseAsync().awaitWithException()
+                } catch (endError: Exception) {
+                    Log.d("ExerciseService", "Rollback failed: ${endError.message}")
+                }
+            }
+            shutDown()
             return false
         }
-
     }
 
     suspend fun pauseExercise(): Boolean {
         try {
-            val activity =
-                currentActivityId?.let { activityDao.getActivity(currentActivityId!!) }
+            val activity = currentActivityId?.let { activityDao.getActivity(currentActivityId!!) }
 
             if (activity != null) {
                 activityDao.updateMetrics(
@@ -296,7 +273,9 @@ class ExerciseService : Service() {
     suspend fun resumeExercise(): Boolean {
         try {
             exerciseClient.resumeExerciseAsync().awaitWithException()
-            pausedAccum += SystemClock.elapsedRealtime() - pauseStarted
+            if (pauseStarted != 0L) {
+                pausedAccum += SystemClock.elapsedRealtime() - pauseStarted
+            }
             pauseStarted = 0L
             return true
         } catch (e: Exception) {
@@ -306,39 +285,50 @@ class ExerciseService : Service() {
     }
 
     suspend fun endExercise(): Boolean {
-        try {
+        return try {
             exerciseClient.endExerciseAsync().awaitWithException()
-            val id = currentActivityId
-            if (id != null) {
-                activityDao.stopActivity(id, System.currentTimeMillis())
-
-                val activity =
-                    activityDao.getActivity(id)
-
-                if (activity != null) {
-                    activityDao.updateMetrics(
-                        id,
-                        distance = distance ?: activity.distance,
-                        calories = calories ?: activity.caloriesBurned,
-                        heartRate = heartRate ?: activity.heartRate,
-                        lastUpdated = System.currentTimeMillis(),
-                    )
-                }
+            try {
+                finalizeActivity()
+            } finally {
+                shutDown()
             }
+            true
         } catch (e: Exception) {
             Log.d("ExerciseService", "Error ending exercise: ${e.message}")
-            return false
-        } finally {
-            ongoingActivity = false
-            currentActivityId = null
-            startElapsed = 0L
-            pausedAccum = 0L
-            pauseStarted = 0L
-            stopForeground(STOP_FOREGROUND_REMOVE)
-            stopSelf()
+            false
         }
-        return true
     }
+
+    // Saves the final data. Safe to call twice: only the first call does anything.
+    private suspend fun finalizeActivity() {
+        finalizeMutex.withLock {
+            val id = currentActivityId ?: return@withLock
+            currentActivityId = null
+
+            activityDao.stopActivity(id, System.currentTimeMillis())
+            val activity = activityDao.getActivity(id)
+            if (activity != null) {
+                activityDao.updateMetrics(
+                    id,
+                    distance = distance ?: activity.distance,
+                    calories = calories ?: activity.caloriesBurned,
+                    heartRate = heartRate ?: activity.heartRate,
+                    lastUpdated = System.currentTimeMillis()
+                )
+            }
+        }
+    }
+
+    // Resets state and stops the service.
+    private fun shutDown() {
+        ongoingActivity = false
+        startElapsed = 0L
+        pausedAccum = 0L
+        pauseStarted = 0L
+        stopForeground(STOP_FOREGROUND_REMOVE)
+        stopSelf()
+    }
+
 
     override fun onCreate() {
         super.onCreate()
