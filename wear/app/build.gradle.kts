@@ -13,7 +13,7 @@ val keystorePropertiesFile = rootProject.file("key.properties")
 val keystoreProperties = Properties()
 
 if (keystorePropertiesFile.exists()) {
-    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+    FileInputStream(keystorePropertiesFile).use { keystoreProperties.load(it) }
 }
 
 android {
@@ -82,12 +82,13 @@ dependencies {
     implementation(libs.material.icons.extended)
     implementation(libs.wear.compose.navigation)
     implementation(libs.health.services.client)
+    implementation(libs.horologist.compose.layout)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.wear.ongoing)
     implementation(libs.room.runtime)
     ksp(libs.room.compiler)
     androidTestImplementation(platform(libs.compose.bom))
     androidTestImplementation(libs.ui.test.junit4)
     debugImplementation(libs.ui.test.manifest)
     debugImplementation(libs.ui.tooling)
-
 }

@@ -24,6 +24,19 @@ import org.aossie.carbontracker.data.database.ActivityEntity
 import org.aossie.carbontracker.data.database.AppDatabase
 import org.aossie.carbontracker.providers.ExerciseStateHolder.exerciseUpdate
 import org.aossie.carbontracker.providers.HealthClientProvider
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Intent
+import android.content.pm.ServiceInfo
+import android.os.Build
+import android.os.SystemClock
+import androidx.core.app.NotificationCompat
+import androidx.core.app.ServiceCompat
+import androidx.wear.ongoing.OngoingActivity
+import androidx.wear.ongoing.Status
+import org.aossie.carbontracker.R
+import org.aossie.carbontracker.presentation.MainActivity
 
 
 class ExerciseService : Service() {
@@ -55,14 +68,77 @@ class ExerciseService : Service() {
 
     @Volatile
     private var ongoingActivity = false
+    private val channelId = "exercise_channel"
+    private val notifId = 1001
+
+    @Volatile
+    private var startElapsed = 0L
+
+    @Volatile
+    private var pausedAccum = 0L
+
+    @Volatile
+    private var pauseStarted = 0L
+
+    fun elapsedMillis(): Long {
+        if (startElapsed == 0L) return 0L
+        val end = if (pauseStarted != 0L) pauseStarted else SystemClock.elapsedRealtime()
+        return end - startElapsed - pausedAccum
+    }
+
+    private fun startOngoing(exercise: ExerciseType) {
+        val nm = getSystemService(NotificationManager::class.java)
+        nm.createNotificationChannel(
+            NotificationChannel(channelId, "Workout", NotificationManager.IMPORTANCE_LOW)
+        )
+
+        val pi = PendingIntent.getActivity(
+            this, 0,
+            Intent(this, MainActivity::class.java)
+                .apply {
+                    flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
+                    putExtra("exercise_type", exercise.name)
+                },
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val builder = NotificationCompat.Builder(this, channelId)
+            .setContentTitle("CarbonTracker")
+            .setContentText("Tracking ${exercise.name}")
+            .setSmallIcon(R.drawable.ic_exercise)
+            .setCategory(NotificationCompat.CATEGORY_WORKOUT)
+            .setContentIntent(pi)
+            .setOngoing(true)
+
+        val status = Status.Builder()
+            .addTemplate("#type# #time#")
+            .addPart("type", Status.TextPart("Workout"))
+            .addPart("time", Status.StopwatchPart(SystemClock.elapsedRealtime()))
+            .build()
+
+        OngoingActivity.Builder(applicationContext, notifId, builder)
+            .setTouchIntent(pi)
+            .setStatus(status)
+            .setStaticIcon(R.drawable.ic_exercise)
+            .build()
+            .apply(applicationContext)
+
+        val type = if (Build.VERSION.SDK_INT >= 34) {
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_HEALTH or ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
+        } else {
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
+        }
+
+        ServiceCompat.startForeground(this, notifId, builder.build(), type)
+    }
 
     private val exerciseCallback = object : ExerciseUpdateCallback {
 
-        override fun onRegistered(): Unit {
+        override fun onRegistered() {
             Log.d("ExerciseService", "Exercise callback registered successfully")
         }
 
-        override fun onRegistrationFailed(throwable: Throwable): Unit {
+        override fun onRegistrationFailed(throwable: Throwable) {
             Log.d("ExerciseService", "Exercise callback registration failed: ${throwable.message}")
         }
 
@@ -100,6 +176,8 @@ class ExerciseService : Service() {
                 }
                 ongoingActivity = false
                 currentActivityId = null
+                stopForeground(STOP_FOREGROUND_REMOVE)
+                stopSelf()
                 return
             }
 
@@ -144,16 +222,24 @@ class ExerciseService : Service() {
             isGpsEnabled = true,
         )
         try {
+            startOngoing(exercise)
             exerciseClient.startExerciseAsync(config).awaitWithException()
-            if (ongoingActivity) return false
+            if (ongoingActivity) {
+                stopForeground(STOP_FOREGROUND_REMOVE)
+                stopSelf()
+                return false
+            }
             ongoingActivity = true
-            coroutineScope.launch {
-                currentActivityId = activityDao.startActivity(
-                    ActivityEntity(
-                        startTime = System.currentTimeMillis(),
-                        activityType = exercise.name
-                    )
+            startElapsed = SystemClock.elapsedRealtime()
+            pausedAccum = 0L
+            pauseStarted = 0L
+            currentActivityId = activityDao.startActivity(
+                ActivityEntity(
+                    startTime = System.currentTimeMillis(),
+                    activityType = exercise.name
                 )
+            )
+            coroutineScope.launch {
 
                 while (ongoingActivity) {
 
@@ -177,6 +263,8 @@ class ExerciseService : Service() {
 
         } catch (e: Exception) {
             Log.d("ExerciseService", "Error starting exercise: ${e.message}")
+            stopForeground(STOP_FOREGROUND_REMOVE)
+            stopSelf()
             return false
         }
 
@@ -197,6 +285,7 @@ class ExerciseService : Service() {
                 )
             }
             exerciseClient.pauseExerciseAsync().awaitWithException()
+            pauseStarted = SystemClock.elapsedRealtime()
             return true
         } catch (e: Exception) {
             Log.d("ExerciseService", "Error pausing exercise: ${e.message}")
@@ -207,6 +296,8 @@ class ExerciseService : Service() {
     suspend fun resumeExercise(): Boolean {
         try {
             exerciseClient.resumeExerciseAsync().awaitWithException()
+            pausedAccum += SystemClock.elapsedRealtime() - pauseStarted
+            pauseStarted = 0L
             return true
         } catch (e: Exception) {
             Log.d("ExerciseService", "Error resuming exercise: ${e.message}")
@@ -240,6 +331,11 @@ class ExerciseService : Service() {
         } finally {
             ongoingActivity = false
             currentActivityId = null
+            startElapsed = 0L
+            pausedAccum = 0L
+            pauseStarted = 0L
+            stopForeground(STOP_FOREGROUND_REMOVE)
+            stopSelf()
         }
         return true
     }
@@ -273,5 +369,5 @@ class ExerciseService : Service() {
         exerciseClient.setUpdateCallback(exerciseCallback)
     }
 
-    override fun onBind(intent: android.content.Intent?): android.os.IBinder = binder
+    override fun onBind(intent: Intent?): android.os.IBinder = binder
 }

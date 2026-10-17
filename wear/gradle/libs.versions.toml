@@ -15,6 +15,8 @@ wearComposeNavigation = "1.6.2"
 room = "3.0.2"
 healthServices = "1.1.0-rc02"
 kotlinx-serialization = "1.11.0"
+horologist = "0.7.15"
+wearOngoing = "1.1.0"
 
 [libraries]
 material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
@@ -37,6 +39,10 @@ room-runtime = { group = "androidx.room3", name = "room3-runtime", version.ref =
 room-compiler = { group = "androidx.room3", name = "room3-compiler", version.ref = "room" }
 health-services-client = { module = "androidx.health:health-services-client", version.ref = "healthServices" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
+horologist-compose-layout = { group = "com.google.android.horologist", name = "horologist-compose-layout", version.ref = "horologist" }
+wear-ongoing = { group = "androidx.wear", name = "wear-ongoing", version.ref = "wearOngoing" }
+
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
