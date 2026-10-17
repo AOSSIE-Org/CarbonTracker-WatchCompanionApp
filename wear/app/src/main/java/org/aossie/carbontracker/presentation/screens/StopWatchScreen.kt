@@ -117,9 +117,6 @@ fun StopwatchScreen(exerciseType: ExerciseType) {
             } else {
                 add(Manifest.permission.BODY_SENSORS)
             }
-            if (Build.VERSION.SDK_INT >= 33) {
-                add(Manifest.permission.POST_NOTIFICATIONS)
-            }
         }
     }
 
@@ -135,6 +132,20 @@ fun StopwatchScreen(exerciseType: ExerciseType) {
         hasAllPermissions = results.values.all { it }
     }
 
+
+    val notificationLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { /* result ignored on purpose: controls stay available either way */ }
+
+    LaunchedEffect(hasAllPermissions) {
+        if (hasAllPermissions && Build.VERSION.SDK_INT >= 33 &&
+            ContextCompat.checkSelfPermission(
+                context, Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            notificationLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
 
     Box(
         modifier = Modifier.fillMaxSize(),

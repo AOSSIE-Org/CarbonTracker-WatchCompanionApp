@@ -1,5 +1,6 @@
 package org.aossie.carbontracker.presentation
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -30,11 +31,21 @@ class MainActivity : ComponentActivity() {
         setContent {
             CarbonTrackerTheme {
                 AppScaffold() {
-                    WearApp(pendingExercise)
+                    WearApp(
+                        pendingExercise = pendingExercise,
+                        onHandled = { pendingExercise = null }
+                    )
                 }
             }
         }
     }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        pendingExercise = intent.getStringExtra("exercise_type")
+    }
+
 }
 
 fun exerciseTypeFromString(name: String): ExerciseType {
@@ -47,11 +58,14 @@ fun exerciseTypeFromString(name: String): ExerciseType {
 }
 
 @Composable
-fun WearApp(pendingExercise: String?) {
+fun WearApp(pendingExercise: String?, onHandled: () -> Unit) {
     val state = rememberSwipeDismissableNavController()
 
     LaunchedEffect(pendingExercise) {
-        pendingExercise?.let { state.navigate("stopwatch/$it") }
+        pendingExercise?.let {
+            state.navigate("stopwatch/$it") { launchSingleTop = true }
+            onHandled()
+        }
     }
 
     SwipeDismissableNavHost(
