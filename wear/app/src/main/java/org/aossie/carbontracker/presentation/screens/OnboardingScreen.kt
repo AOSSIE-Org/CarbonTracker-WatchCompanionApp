@@ -3,7 +3,6 @@ package org.aossie.carbontracker.presentation.screens
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -22,8 +21,8 @@ import androidx.navigation.NavController
 import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.Text
 import androidx.wear.compose.material3.TimeText
+import org.aossie.carbontracker.presentation.ui.Cream
 import org.aossie.carbontracker.presentation.ui.OnPrimary
-import org.aossie.carbontracker.presentation.ui.PrimaryGreen
 
 @Composable
 fun OnboardingScreen(
@@ -44,7 +43,7 @@ fun OnboardingScreen(
             Icon(
                 imageVector = Icons.Filled.Eco,
                 contentDescription = "Leaf",
-                tint = PrimaryGreen,
+                tint = Cream,
                 modifier = Modifier
                     .size(50.dp)
                     .padding(bottom = 8.dp)
@@ -55,13 +54,13 @@ fun OnboardingScreen(
                 text = "CarbonTracker",
                 fontWeight = FontWeight.ExtraBold,
                 fontSize = 20.sp,
-                color = Color.Black,
+                color = Cream,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             Text(
                 text = "Ready to make your move for the planet?",
                 textAlign = TextAlign.Center,
-                color = PrimaryGreen,
+                color = Cream,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Thin,
                 modifier = Modifier.padding(bottom = 16.dp, start = 24.dp, end = 24.dp)

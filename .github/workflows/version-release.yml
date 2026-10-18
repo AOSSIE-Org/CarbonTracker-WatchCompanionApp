@@ -48,12 +48,18 @@ jobs:
 
 
       - name: Decode Android keystore
-        run: echo "${{ secrets.ANDROID_KEYSTORE }}" | base64 --decode > ${{ env.KEYSTORE_PATH }}
+        env:
+          ANDROID_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE }}
+        run: echo "$ANDROID_KEYSTORE" | base64 --decode > "$KEYSTORE_PATH"
 
 
 
       - name: Decode Android key properties
-        run: echo "${{ secrets.ANDROID_KEY_PROPERTIES }}" | base64 --decode > ${{ env.KEY_PROPS_PATH }}
+        env:
+          ANDROID_KEY_PROPERTIES: ${{ secrets.ANDROID_KEY_PROPERTIES }}
+        run: |
+          umask 077
+          echo "$ANDROID_KEY_PROPERTIES" | base64 --decode > "$KEY_PROPS_PATH"
 
       - name: Build Android APK
         working-directory: wear
@@ -61,7 +67,11 @@ jobs:
         run: |
           chmod +x ./gradlew
           VERSION=$(cat ../VERSION | tr -d '[:space:]')
-          ./gradlew :app:assembleRelease -PversionName=$VERSION
+          if ! [[ $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Error: VERSION must follow semantic versioning"
+            exit 1
+          fi
+           ./gradlew :app:assembleRelease -PversionName="$VERSION"
 
       - name: Verify APK file existence
         run: ls -lh ${{ env.APK_PATH }}
@@ -178,7 +188,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const version = 'v${{ steps.get_version.outputs.version }}';
-            const releaseId = '${{ steps.find_release.outputs.release_id }}';
+            const releaseId = Number('${{ steps.find_release.outputs.release_id }}');
 
             // Update and publish the draft release
             await github.rest.repos.updateRelease({
@@ -203,11 +213,11 @@ jobs:
           if [ "${{ steps.publish_release.outputs.released }}" = "true" ]; then
             echo "- **GitHub Release:** ✓" >> $GITHUB_STEP_SUMMARY
           else
-            echo "- **GitHub Release:** ✗ (no draft found)" >> $GITHUB_STEP_SUMMARY
+            echo "- **GitHub Release:** ✗ (release failed or was not completed)" >> $GITHUB_STEP_SUMMARY
           fi
           echo "" >> $GITHUB_STEP_SUMMARY
           if [ "${{ steps.publish_release.outputs.released }}" = "true" ]; then
             echo "Release completed successfully!" >> $GITHUB_STEP_SUMMARY
           else
-            echo "Release failed - no draft release was found to publish" >> $GITHUB_STEP_SUMMARY
+            echo "Release failed or was not completed. Check the workflow logs for details." >> $GITHUB_STEP_SUMMARY
           fi

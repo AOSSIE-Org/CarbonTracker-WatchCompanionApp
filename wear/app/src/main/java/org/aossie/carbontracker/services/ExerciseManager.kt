@@ -66,7 +66,10 @@ class ExerciseManager(private val context: Context) {
             val db = AppDatabase.getInstance(context).activityDao()
             val unsyncedExercises = db.getUnsyncedActivities()
 
-            Log.d("ExerciseService", "Unsynced exercises: $unsyncedExercises")
+            Log.d(
+                "ExerciseService",
+                "Unsynced exercise count: ${unsyncedExercises.size}"
+            )
             return unsyncedExercises
 
         } catch (exception: Exception) {
@@ -79,19 +82,9 @@ class ExerciseManager(private val context: Context) {
     }
 
     suspend fun markExercisesAsSynced(ids: List<Long>) {
-        try {
-            val db = AppDatabase.getInstance(context).activityDao()
-            db.markSynced(ids)
-            Log.d("ExerciseService", "Marked exercises as synced: $ids")
-        } catch (exception: Exception) {
-            Log.d(
-                "ExerciseService",
-                "Error marking exercises as synced: ${exception.message}"
-            )
-        }
-
+        val db = AppDatabase.getInstance(context).activityDao()
+        db.markSynced(ids)
+        Log.d("ExerciseService", "Marked exercises as synced: $ids")
     }
-
-
 }
 
