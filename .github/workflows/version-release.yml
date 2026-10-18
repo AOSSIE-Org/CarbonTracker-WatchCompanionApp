@@ -118,15 +118,46 @@ jobs:
           echo "✓ Version format is valid: $VERSION"
 
       - name: Check if tag already exists
+        id: check_tag
         run: |
           VERSION="${{ steps.get_version.outputs.version }}"
-          if git show-ref --tags --verify --quiet "refs/tags/v$VERSION"; then
-            echo "Error: Tag v$VERSION already exists"
-            exit 1
+          TAG="v$VERSION"
+
+          git fetch origin "refs/tags/$TAG:refs/tags/$TAG" 2>/dev/null || true
+
+          if git show-ref --tags --verify --quiet "refs/tags/$TAG"; then
+            TAG_COMMIT=$(git rev-parse "$TAG^{commit}")
+            CURRENT_COMMIT=$(git rev-parse HEAD)
+
+            if [ "$TAG_COMMIT" = "$CURRENT_COMMIT" ]; then
+              echo "Tag $TAG already points to this commit. Continuing retry."
+              echo "exists=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "::error::Tag $TAG already exists but points to a different commit."
+              exit 1
+            fi
+          else
+            echo "Tag $TAG does not exist yet."
+            echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
-          echo "✓ Tag v$VERSION does not exist yet"
+
+      - name: Check if release already published
+        id: check_release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="v${{ steps.get_version.outputs.version }}"
+          IS_DRAFT=$(gh release view "$TAG" --repo "${{ github.repository }}" \
+            --json isDraft -q '.isDraft' 2>/dev/null || echo "none")
+          if [ "$IS_DRAFT" = "false" ]; then
+            echo "published=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "published=false" >> "$GITHUB_OUTPUT"
+          fi
+
 
       - name: Create and push tag
+        if: steps.check_tag.outputs.exists == 'false' && steps.check_release.outputs.published != 'true'
         run: |
           VERSION="${{ steps.get_version.outputs.version }}"
           git config user.name "github-actions[bot]"
@@ -137,6 +168,7 @@ jobs:
 
 
       - name: Find Draft Release
+        if: steps.check_release.outputs.published != 'true'
         id: find_release
         uses: actions/github-script@v7
         with:
@@ -151,7 +183,9 @@ jobs:
             });
 
             // Find the draft release
-            const draftRelease = releases.find(release => release.draft === true);
+            const draftRelease =
+            releases.find(r => r.draft && r.tag_name === version) ||
+            releases.find(r => r.draft);
 
             if (!draftRelease) {
               core.setFailed('No draft release found. Please ensure release-drafter has created a draft release first.');
@@ -169,12 +203,14 @@ jobs:
             core.setOutput('release_id', draftRelease.id);
 
       - name: Download APK artifact
+        if: steps.check_release.outputs.published != 'true'
         uses: actions/download-artifact@v4
         with:
           name: apk-release
           path: apk
 
       - name: Attach APK to release
+        if: steps.check_release.outputs.published != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -182,6 +218,7 @@ jobs:
           apk/app-release.apk --clobber --repo "${{ github.repository }}"
 
       - name: Publish Draft Release
+        if: steps.check_release.outputs.published != 'true'
         id: publish_release
         uses: actions/github-script@v7
         with:
@@ -209,15 +246,10 @@ jobs:
           echo "### Release Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Version:** v${{ steps.get_version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Tag Created:** ✓" >> $GITHUB_STEP_SUMMARY
-          if [ "${{ steps.publish_release.outputs.released }}" = "true" ]; then
-            echo "- **GitHub Release:** ✓" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.check_release.outputs.published }}" = "true" ]; then
+            echo "- **Status:** Already published, nothing to do" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ steps.publish_release.outputs.released }}" = "true" ]; then
+            echo "- **Status:** Released ✓" >> $GITHUB_STEP_SUMMARY
           else
-            echo "- **GitHub Release:** ✗ (release failed or was not completed)" >> $GITHUB_STEP_SUMMARY
-          fi
-          echo "" >> $GITHUB_STEP_SUMMARY
-          if [ "${{ steps.publish_release.outputs.released }}" = "true" ]; then
-            echo "Release completed successfully!" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "Release failed or was not completed. Check the workflow logs for details." >> $GITHUB_STEP_SUMMARY
+            echo "- **Status:** ✗ Release did not complete, check the failed step above" >> $GITHUB_STEP_SUMMARY
           fi
