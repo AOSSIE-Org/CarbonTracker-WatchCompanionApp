@@ -1,7 +1,7 @@
 package org.aossie.carbontracker.presentation.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.wear.compose.foundation.lazy.rememberTransformingLazyColumnState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -21,7 +21,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -33,6 +32,8 @@ import androidx.wear.compose.material3.OutlinedButton
 import androidx.wear.compose.material3.ButtonDefaults
 import androidx.wear.compose.material3.CircularProgressIndicator
 import androidx.wear.compose.material3.ScreenScaffold
+import androidx.wear.compose.material3.ScrollIndicator
+import androidx.wear.compose.material3.ScrollIndicatorDefaults
 import androidx.wear.compose.material3.Text
 import org.aossie.carbontracker.data.activityInfo
 import org.aossie.carbontracker.presentation.ui.ActivityChipBg
@@ -41,6 +42,11 @@ import org.aossie.carbontracker.presentation.ui.ActivityIconBg
 import org.aossie.carbontracker.presentation.ui.PrimaryGreen
 import org.aossie.carbontracker.presentation.ui.SecondaryText
 import org.aossie.carbontracker.services.ExerciseManager
+import androidx.wear.compose.material3.ListHeader
+import androidx.wear.compose.material3.SurfaceTransformation
+import androidx.wear.compose.material3.lazy.rememberTransformationSpec
+import androidx.wear.compose.material3.lazy.transformedHeight
+import org.aossie.carbontracker.presentation.ui.Cream
 
 @Composable
 fun ActivityScreen(navController: NavController) {
@@ -52,33 +58,53 @@ fun ActivityScreen(navController: NavController) {
 
     var retryCount by remember { mutableIntStateOf(0) }
 
+    val listState = rememberTransformingLazyColumnState()
+    val transformationSpec = rememberTransformationSpec()
+
+    val context = LocalContext.current
 
     LaunchedEffect(retryCount) {
         isLoading = true
-        activities = ExerciseManager(navController.context).checkAvailableExercises()
+        activities = ExerciseManager(context).checkAvailableExercises()
         isLoading = false
     }
 
-    ScreenScaffold { contentPadding ->
+    ScreenScaffold(
+        scrollState = listState,
+        scrollIndicator = {
+            ScrollIndicator(
+                state = listState,
+                colors = ScrollIndicatorDefaults.colors(
+                    indicatorColor = Cream,
+                    trackColor = Cream.copy(alpha = 0.2f)
+                )
+            )
+        }
+    ) { scaffoldPadding ->
         TransformingLazyColumn(
-            contentPadding = contentPadding
+            state = listState,
+            contentPadding = scaffoldPadding,
         ) {
             item {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = "Pick an activity",
-                        fontSize = 12.sp,
-                        color = PrimaryGreen,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Box(
-                        modifier = Modifier
-                            .width(90.dp)
-                            .height(1.dp)
-                            .background(PrimaryGreen)
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
+                ListHeader(
+                    modifier = Modifier.transformedHeight(this, transformationSpec),
+                    transformation = SurfaceTransformation(transformationSpec)
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "Pick an activity",
+                            fontSize = 12.sp,
+                            color = Cream,
+                            fontWeight = FontWeight.Bold,
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Box(
+                            modifier = Modifier
+                                .width(90.dp)
+                                .height(1.dp)
+                                .background(PrimaryGreen)
+                        )
+                    }
                 }
             }
 
@@ -86,12 +112,12 @@ fun ActivityScreen(navController: NavController) {
                 item {
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth(),
+                            .fillMaxWidth()
+                            .transformedHeight(this, transformationSpec),
                         contentAlignment = Alignment.Center
                     ) {
                         CircularProgressIndicator()
                     }
-
                 }
             } else {
                 if (activities.isEmpty()) {
@@ -107,7 +133,9 @@ fun ActivityScreen(navController: NavController) {
                             onClick = { retryCount++ },
                             modifier = Modifier
                                 .height(32.dp)
-                                .padding(vertical = 2.dp),
+                                .padding(vertical = 2.dp)
+                                .transformedHeight(this, transformationSpec),
+                            transformation = SurfaceTransformation(transformationSpec),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = ActivityChipBg
                             ),
@@ -119,7 +147,7 @@ fun ActivityScreen(navController: NavController) {
                             label = {
                                 Text(
                                     text = "Retry",
-                                    color = PrimaryGreen,
+                                    color = SecondaryText,
                                     fontSize = 8.sp,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -146,14 +174,13 @@ fun ActivityScreen(navController: NavController) {
                                             shape = RoundedCornerShape(50)
                                         )
                                         .padding(5.dp)
-
                                 )
                             },
                             label = {
                                 Text(
                                     activityInfo[exercise]?.name ?: "Unknown",
                                     fontSize = 12.sp,
-                                    color = Color.Black
+                                    color = Cream
                                 )
                             },
                             secondaryLabel = {
@@ -168,7 +195,9 @@ fun ActivityScreen(navController: NavController) {
                             ),
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 8.dp, vertical = 2.dp),
+                                .padding(horizontal = 8.dp, vertical = 2.dp)
+                                .transformedHeight(this, transformationSpec),
+                            transformation = SurfaceTransformation(transformationSpec),
                             border = ButtonDefaults.outlinedButtonBorder(
                                 borderColor = ActivityChipBorder,
                                 borderWidth = 1.dp,
@@ -177,7 +206,6 @@ fun ActivityScreen(navController: NavController) {
                         )
                     }
                 }
-
             }
         }
     }
