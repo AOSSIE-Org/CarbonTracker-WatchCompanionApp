@@ -13,23 +13,49 @@ interface ActivityDao {
     @Query("SELECT * FROM activity_data WHERE id = :id")
     suspend fun getActivity(id: Long): ActivityEntity?
 
+    @Query("SELECT * FROM activity_data WHERE endTime is NULL")
+    suspend fun getAllOrphanedActivities(): List<ActivityEntity>
+
     @Query(
         """
         UPDATE activity_data
-        SET distance = :distance, caloriesBurned = :calories, heartRate = :heartRate, isSynced = 0
+        SET distance = :distance, caloriesBurned = :calories, heartRate = :heartRate, isSynced = 0, lastUpdated = :lastUpdated
         WHERE id = :id
     """
     )
-    suspend fun updateMetrics(id: Long, distance: Double, calories: Double, heartRate: Double?)
+    suspend fun updateMetrics(
+        id: Long,
+        distance: Double,
+        calories: Double,
+        heartRate: Double?,
+        lastUpdated: Long
+    )
 
-    @Query("UPDATE activity_data SET endTime = :endTime WHERE id = :id")
+    @Query(
+        """
+    UPDATE activity_data
+    SET endTime = lastUpdated, isSynced = 0
+    WHERE id = :id
+"""
+    )
+    suspend fun closeOrphanedActivity(id: Long)
+
+    @Query("UPDATE activity_data SET endTime = :endTime ,isSynced = 0 WHERE id = :id")
     suspend fun stopActivity(id: Long, endTime: Long)
 
     @Query("SELECT * FROM activity_data WHERE isSynced = 0")
     suspend fun getUnsyncedActivities(): List<ActivityEntity>
 
-    @Query("UPDATE activity_data SET isSynced = 1 WHERE id IN (:ids)")
-    suspend fun markSynced(ids: List<Long>)
+    @Query(
+        """
+    UPDATE activity_data
+    SET isSynced = 1
+    WHERE id = :id
+    AND lastUpdated = :lastUpdated
+"""
+    )
+
+    suspend fun markSynced(id: Long, lastUpdated: Long)
 
     @Query("DELETE FROM activity_data WHERE isSynced = 1")
     suspend fun clearSynced()

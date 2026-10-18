@@ -2,8 +2,9 @@ package org.aossie.carbontracker.data.database
 
 import androidx.room3.Entity
 import androidx.room3.PrimaryKey
+import kotlinx.serialization.Serializable
 
-
+@Serializable
 @Entity(tableName = "activity_data")
 data class ActivityEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
@@ -13,5 +14,6 @@ data class ActivityEntity(
     val endTime: Long? = null,
     val distance: Double = 0.0,
     val caloriesBurned: Double = 0.0,
-    val isSynced: Boolean = false
+    val isSynced: Boolean = false,
+    val lastUpdated: Long = System.currentTimeMillis()
 )
