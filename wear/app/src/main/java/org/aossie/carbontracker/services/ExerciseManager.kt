@@ -81,10 +81,10 @@ class ExerciseManager(private val context: Context) {
         }
     }
 
-    suspend fun markExercisesAsSynced(ids: List<Long>) {
+    suspend fun markExercisesAsSynced(id: Long, lastUpdated: Long) {
         val db = AppDatabase.getInstance(context).activityDao()
-        db.markSynced(ids)
-        Log.d("ExerciseService", "Marked exercises as synced: $ids")
+        db.markSynced(id, lastUpdated)
+        Log.d("ExerciseService", "Marked exercises as synced: $id")
     }
 }
 
