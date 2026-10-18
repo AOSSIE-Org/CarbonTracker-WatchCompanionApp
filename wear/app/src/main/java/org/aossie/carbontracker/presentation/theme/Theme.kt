@@ -2,8 +2,8 @@ package org.aossie.carbontracker.presentation.theme
 
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.wear.compose.material3.MaterialTheme
-import org.aossie.carbontracker.presentation.ui.BackgroundCream
 import org.aossie.carbontracker.presentation.ui.PrimaryGreen
 
 @Composable
@@ -12,8 +12,8 @@ fun CarbonTrackerTheme(
 ) {
     MaterialTheme(
         colorScheme = MaterialTheme.colorScheme.copy(
-            primary = PrimaryGreen,
-            background = BackgroundCream,
+            background = Color.Black,
+            primary = PrimaryGreen
         ),
         content = content
     )
