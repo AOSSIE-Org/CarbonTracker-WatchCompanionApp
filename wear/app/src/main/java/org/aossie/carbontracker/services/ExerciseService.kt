@@ -15,6 +15,7 @@ import androidx.health.services.client.data.ExerciseType
 import androidx.health.services.client.data.ExerciseUpdate
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
@@ -27,6 +28,8 @@ import org.aossie.carbontracker.providers.HealthClientProvider
 
 
 class ExerciseService : Service() {
+
+    private var metricWriterJob: Job? = null
 
     inner class LocalBinder : Binder() {
         fun getService(): ExerciseService = this@ExerciseService
@@ -73,7 +76,6 @@ class ExerciseService : Service() {
             val exerciseStateInfo = update.exerciseStateInfo
             val latestMetrics = update.latestMetrics
 
-
             heartRate = latestMetrics.getData(DataType.HEART_RATE_BPM).lastOrNull()?.value
             calories = latestMetrics.getData(DataType.CALORIES_TOTAL)?.total
             distance = latestMetrics.getData(DataType.DISTANCE).lastOrNull()?.value
@@ -82,15 +84,35 @@ class ExerciseService : Service() {
                 return
             }
 
+            if (exerciseStateInfo.state == ExerciseState.ENDING || exerciseStateInfo.state == ExerciseState.ENDED) {
+                val id = currentActivityId
+                val finalDistance = distance
+                val finalCalories = calories
+                val finalHeartRate = heartRate
 
-            Log.d("ExerciseService", "Exercise state: ${exerciseStateInfo.state}")
+                if (id != null) {
+                    coroutineScope.launch {
+                        activityDao.stopActivity(id, System.currentTimeMillis())
+                        val activity = activityDao.getActivity(id)
+                        if (activity != null) {
+                            activityDao.updateMetrics(
+                                id,
+                                distance = finalDistance ?: activity.distance,
+                                calories = finalCalories ?: activity.caloriesBurned,
+                                heartRate = finalHeartRate ?: activity.heartRate,
+                                lastUpdated = System.currentTimeMillis()
+                            )
+                        }
+                    }
+                }
 
-            Log.d("ExerciseService", "Heart rate: $heartRate")
+                metricWriterJob?.cancel()
+                metricWriterJob = null
 
-            Log.d("ExerciseService", "Calories: $calories")
-
-            Log.d("ExerciseService", "Distance: $distance")
-
+                ongoingActivity = false
+                currentActivityId = null
+                return
+            }
         }
 
 
@@ -128,38 +150,53 @@ class ExerciseService : Service() {
             isGpsEnabled = true,
         )
         try {
+
+            heartRate = null
+            calories = null
+            distance = null
+
             exerciseClient.startExerciseAsync(config).awaitWithException()
             if (ongoingActivity) return false
-            ongoingActivity = true
-            coroutineScope.launch {
-                currentActivityId = activityDao.startActivity(
-                    ActivityEntity(
-                        startTime = System.currentTimeMillis(),
-                        activityType = exercise.name
-                    )
-                )
 
+            currentActivityId = activityDao.startActivity(
+                ActivityEntity(
+                    startTime = System.currentTimeMillis(),
+                    activityType = exercise.name
+                )
+            )
+
+            ongoingActivity = true
+
+            val sessionId = currentActivityId!!
+
+            metricWriterJob = coroutineScope.launch {
                 while (ongoingActivity) {
 
                     delay(30_000) // 30 seconds
 
-                    val id = currentActivityId ?: continue
+                    if (!ongoingActivity || currentActivityId != sessionId) {
+                        break
+                    }
 
                     if (distance != null && calories != null) {
 
                         activityDao.updateMetrics(
-                            id = id,
+                            id = sessionId,
                             distance = distance!!,
                             calories = calories!!,
-                            heartRate = heartRate
+                            heartRate = heartRate,
+                            lastUpdated = System.currentTimeMillis()
                         )
                     }
                 }
             }
+
             return true
+
 
         } catch (e: Exception) {
             Log.d("ExerciseService", "Error starting exercise: ${e.message}")
+            endExercise()
             return false
         }
 
@@ -175,7 +212,8 @@ class ExerciseService : Service() {
                     currentActivityId as Long,
                     distance = distance ?: activity.distance,
                     calories = calories ?: activity.caloriesBurned,
-                    heartRate = heartRate ?: activity.heartRate
+                    heartRate = heartRate ?: activity.heartRate,
+                    lastUpdated = System.currentTimeMillis()
                 )
             }
             exerciseClient.pauseExerciseAsync().awaitWithException()
@@ -200,6 +238,7 @@ class ExerciseService : Service() {
         try {
             exerciseClient.endExerciseAsync().awaitWithException()
             val id = currentActivityId
+
             if (id != null) {
                 activityDao.stopActivity(id, System.currentTimeMillis())
 
@@ -211,24 +250,42 @@ class ExerciseService : Service() {
                         id,
                         distance = distance ?: activity.distance,
                         calories = calories ?: activity.caloriesBurned,
-                        heartRate = heartRate ?: activity.heartRate
+                        heartRate = heartRate ?: activity.heartRate,
+                        lastUpdated = System.currentTimeMillis(),
                     )
                 }
             }
+
+            metricWriterJob?.cancel()
+            metricWriterJob = null
+
+            ongoingActivity = false
+            currentActivityId = null
+
+            return true
+
         } catch (e: Exception) {
             Log.d("ExerciseService", "Error ending exercise: ${e.message}")
             return false
-        } finally {
-            ongoingActivity = false
-            currentActivityId = null
         }
-        return true
     }
 
     override fun onCreate() {
         super.onCreate()
         val db = AppDatabase.getInstance(applicationContext)
         activityDao = db.activityDao()
+        coroutineScope.launch {
+            val orphanedActivities = activityDao.getAllOrphanedActivities()
+            Log.d(
+                "ExerciseService",
+                "Found ${orphanedActivities.size} orphaned activities. Closing them."
+            )
+            orphanedActivities.forEach { activity ->
+                Log.d("ExerciseService", "Closing orphaned activity with ID: ${activity.id}")
+                activityDao.closeOrphanedActivity(activity.id)
+            }
+        }
+
         exerciseClient = HealthClientProvider.getClient().exerciseClient
         registerExerciseCallback()
     }
