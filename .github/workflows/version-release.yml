@@ -77,7 +77,7 @@ jobs:
         run: ls -lh ${{ env.APK_PATH }}
 
       - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: apk-release
           path: ${{ env.APK_PATH }}
