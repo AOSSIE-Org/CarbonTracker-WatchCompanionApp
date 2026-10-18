@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
-import android.os.SystemClock
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -64,6 +63,7 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import org.aossie.carbontracker.presentation.ui.Cream
 
 @Composable
 fun StopwatchScreen(exerciseType: ExerciseType) {
@@ -72,15 +72,10 @@ fun StopwatchScreen(exerciseType: ExerciseType) {
     val coroutineScope = rememberCoroutineScope()
 
     var elapsedMillis by remember { mutableLongStateOf(0L) }
-    var isRunning by remember { mutableStateOf(false) }
-    var isStarted by remember { mutableStateOf(false) }
-    var startTime by remember { mutableLongStateOf(0L) }
-    var pauseTime by remember { mutableLongStateOf(0L) }
     val exerciseState by ExerciseStateHolder.state.collectAsState()
     var exerciseService by remember { mutableStateOf<ExerciseService?>(null) }
-    val ongoingActivity = exerciseState == ExerciseState.ACTIVE ||
-        exerciseState == ExerciseState.USER_PAUSED ||
-        exerciseState == ExerciseState.USER_PAUSING
+    val ongoingActivity =
+        exerciseState == ExerciseState.ACTIVE || exerciseState == ExerciseState.USER_PAUSED || exerciseState == ExerciseState.USER_PAUSING
 
     val connection = remember {
         object : ServiceConnection {
@@ -103,22 +98,15 @@ fun StopwatchScreen(exerciseType: ExerciseType) {
         }
     }
 
-
-    LaunchedEffect(isRunning) {
-        while (isRunning) {
-            if (!isStarted) {
-                if (pauseTime > 0L) {
-                    startTime = SystemClock.elapsedRealtime() - pauseTime
-                    pauseTime = 0L
-                } else {
-                    startTime = SystemClock.elapsedRealtime()
-                }
-                isStarted = true
-            }
-            elapsedMillis = SystemClock.elapsedRealtime() - startTime
+    LaunchedEffect(exerciseService, exerciseState) {
+        val service = exerciseService ?: return@LaunchedEffect
+        elapsedMillis = service.elapsedMillis()
+        while (exerciseState == ExerciseState.ACTIVE) {
             delay(1000L)
+            elapsedMillis = service.elapsedMillis()
         }
     }
+
 
     val requiredPermissions = remember {
         buildList {
@@ -132,10 +120,9 @@ fun StopwatchScreen(exerciseType: ExerciseType) {
         }
     }
 
-    fun hasAllPermissions(): Boolean =
-        requiredPermissions.all {
-            ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
-        }
+    fun hasAllPermissions(): Boolean = requiredPermissions.all {
+        ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
+    }
 
     var hasAllPermissions by remember { mutableStateOf(hasAllPermissions()) }
 
@@ -146,9 +133,22 @@ fun StopwatchScreen(exerciseType: ExerciseType) {
     }
 
 
+    val notificationLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { /* result ignored on purpose: controls stay available either way */ }
+
+    LaunchedEffect(hasAllPermissions) {
+        if (hasAllPermissions && Build.VERSION.SDK_INT >= 33 &&
+            ContextCompat.checkSelfPermission(
+                context, Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            notificationLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
+
     Box(
-        modifier = Modifier
-            .fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,
     ) {
         if (!hasAllPermissions) {
@@ -168,8 +168,7 @@ fun StopwatchScreen(exerciseType: ExerciseType) {
                     fontSize = 14.sp,
                     modifier = Modifier
                         .padding(16.dp)
-                        .clickable { permissionLauncher.launch(requiredPermissions.toTypedArray()) }
-                )
+                        .clickable { permissionLauncher.launch(requiredPermissions.toTypedArray()) })
             }
         } else {
             Column(
@@ -183,7 +182,7 @@ fun StopwatchScreen(exerciseType: ExerciseType) {
 
                 Text(
                     text = formatElapsed(elapsedMillis),
-                    color = PrimaryGreen,
+                    color = Cream,
                     fontSize = 34.sp,
                     fontWeight = FontWeight.Medium,
                     modifier = Modifier.padding(top = 6.dp, bottom = 20.dp),
@@ -213,9 +212,6 @@ fun StopwatchScreen(exerciseType: ExerciseType) {
                                         coroutineScope.launch {
                                             if (service.endExercise()) {
                                                 elapsedMillis = 0L
-                                                isRunning = false
-                                                isStarted = false
-                                                pauseTime = 0L
                                             }
                                         }
                                     }
@@ -250,12 +246,15 @@ fun StopwatchScreen(exerciseType: ExerciseType) {
                             onClick = {
                                 exerciseService?.let { service ->
                                     coroutineScope.launch {
-                                        val ok = if (exerciseState == ExerciseState.USER_PAUSED)
+                                        if (exerciseState == ExerciseState.USER_PAUSED) {
                                             service.resumeExercise()
-                                        else
+                                        } else {
+                                            ContextCompat.startForegroundService(
+                                                context,
+                                                Intent(context, ExerciseService::class.java)
+                                            )
                                             service.startExercise(exerciseType)
-
-                                        if (ok) isRunning = true
+                                        }
                                     }
                                 }
                             },
@@ -285,14 +284,10 @@ fun StopwatchScreen(exerciseType: ExerciseType) {
                                 contentDescription = "Pause",
                                 diameter = 46.dp,
                                 onClick = {
-                                    val currentElapsed = SystemClock.elapsedRealtime() - startTime
                                     exerciseService?.let { service ->
                                         coroutineScope.launch {
                                             if (service.pauseExercise()) {
-                                                elapsedMillis = currentElapsed
-                                                pauseTime = currentElapsed
-                                                isRunning = false
-                                                isStarted = false
+                                                elapsedMillis = service.elapsedMillis()
                                             }
                                         }
                                     }
@@ -335,8 +330,7 @@ private fun RoundControlButton(
         modifier = Modifier
             .size(diameter)
             .background(
-                if (enabled) backgroundColor else backgroundColor.copy(alpha = 0.4f),
-                CircleShape
+                if (enabled) backgroundColor else backgroundColor.copy(alpha = 0.4f), CircleShape
             ),
         contentAlignment = Alignment.Center,
     ) {

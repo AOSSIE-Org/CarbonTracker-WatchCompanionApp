@@ -4,7 +4,7 @@ package org.aossie.carbontracker.presentation.ui
 import androidx.compose.ui.graphics.Color
 
 // Main app colors
-val BackgroundCream = Color(0xFFF7F5E8)
+val Cream = Color(0xFFF7F5E8)
 val PrimaryGreen = Color(0xFF5E6F00)
 val OliveGreen = Color(0xFF5C6B2A)
 

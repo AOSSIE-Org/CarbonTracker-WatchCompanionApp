@@ -9,10 +9,6 @@ object ExerciseStateHolder {
     val state: StateFlow<ExerciseState?> = _state
 
     fun exerciseUpdate(newState: ExerciseState?) {
-        val changed = newState != _state.value
         _state.value = newState
-        if (changed) {
-            _state.value = newState
-        }
     }
 }
