@@ -215,7 +215,7 @@ class ExerciseService : Service() {
                     startTime = System.currentTimeMillis(), activityType = exercise.name
                 )
             )
-            coroutineScope.launch {
+            val sessionId = currentActivityId!!
 
             metricWriterJob = coroutineScope.launch {
                 while (ongoingActivity) {
@@ -329,6 +329,8 @@ class ExerciseService : Service() {
 
     // Resets state and stops the service.
     private fun shutDown() {
+        metricWriterJob?.cancel()
+        metricWriterJob = null
         ongoingActivity = false
         startElapsed = 0L
         pausedAccum = 0L
