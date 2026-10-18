@@ -61,9 +61,11 @@ fun ActivityScreen(navController: NavController) {
     val listState = rememberTransformingLazyColumnState()
     val transformationSpec = rememberTransformationSpec()
 
+    val context = LocalContext.current
+
     LaunchedEffect(retryCount) {
         isLoading = true
-        activities = ExerciseManager(navController.context).checkAvailableExercises()
+        activities = ExerciseManager(context).checkAvailableExercises()
         isLoading = false
     }
 
