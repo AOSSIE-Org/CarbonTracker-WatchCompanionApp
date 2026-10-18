@@ -4,7 +4,7 @@
 <!-- Organization Logo -->
 <div align="center" style="display: flex; align-items: center; justify-content: center; gap: 16px;">
   <img alt="AOSSIE" src="public/aossie-logo.svg" width="175">
-  <img src="public/todo-project-logo.svg" width="175" />
+  <img src="brand/logo.svg" width="175" />
 </div>
 
 &nbsp;
@@ -12,7 +12,7 @@
 <!-- Organization Name -->
 <div align="center">
 
-[![Static Badge](https://img.shields.io/badge/aossie.org/TODO-228B22?style=for-the-badge&labelColor=FFC517)](https://TODO.aossie.org/)
+<!-- [![Static Badge](https://img.shields.io/badge/aossie.org/TODO-228B22?style=for-the-badge&labelColor=FFC517)](https://TODO.aossie.org/) -->
 
 <!-- Correct deployed url to be added -->
 
@@ -32,6 +32,10 @@
 <a href="https://discord.gg/hjUhu33uAn">
 <img src="https://img.shields.io/discord/1022871757289422898?style=flat&logo=discord&logoColor=white&logoSize=auto&label=Discord&labelColor=5865F2&color=57F287" alt="Discord Badge"/></a>
 &nbsp;&nbsp;
+<!-- Medium -->
+<a href="https://news.stability.nexus/">
+  <img src="https://img.shields.io/badge/Medium-black?style=flat&logo=medium&logoColor=black&logoSize=auto&color=white" alt="Medium Badge"></a>
+&nbsp;&nbsp;
 <!-- LinkedIn -->
 <a href="https://www.linkedin.com/company/aossie/">
   <img src="https://img.shields.io/badge/LinkedIn-black?style=flat&logo=LinkedIn&logoColor=white&logoSize=auto&color=0A66C2" alt="LinkedIn Badge"></a>
@@ -39,212 +43,166 @@
 <!-- Youtube -->
 <a href="https://www.youtube.com/@AOSSIE-Org">
   <img src="https://img.shields.io/youtube/channel/subscribers/UCKVVLbawY7Gej_3o2WKsoiA?style=flat&logo=youtube&logoColor=white%20&logoSize=auto&labelColor=FF0000&color=FF0000" alt="Youtube Badge"></a>
-
-
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/{owner}/{repo}/badge)](https://scorecard.dev/viewer/?uri=github.com/{owner}/{repo})
-
-[![Best Practices](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2F%7Bowner%7D%2F%7Brepo%7D%2Fmain%2Fchecklist-status.json&logo=openssf)](./BestPracticesChecklist.md)
 </p>
 
 ---
 
 <div align="center">
-<h1>TODO: Project Name</h1>
+<h1>CarbonTracker Wear OS</h1>
 </div>
 
-[TODO](https://TODO.stability.nexus/) is a ... TODO: Project Description.
+CarbonTracker Wear OS is the smartwatch companion of the CarbonTracker mobile application. It lets users record fitness activities directly from their wrist and syncs them with the mobile app.
 
----
+The app follows a local-first and privacy-focused approach. Activity data is stored on the watch and is never sent to any of our servers.
 
-## 🚀 Features
+## Features
 
-TODO: List your main features here:
-
-- **Feature 1**: Description
-- **Feature 2**: Description
-- **Feature 3**: Description
-- **Feature 4**: Description
-
----
+- Record fitness activities from your watch
+- Choose from a list of supported activities
+- Track activity time with a built-in stopwatch
+- Activity tracking powered by the Health Services API
+- Automatic sync with the CarbonTracker mobile app via the Wear OS Data Layer API
+- Local storage on the watch using Room so no data is lost
+- No data stored on external servers
 
 ## 💻 Tech Stack
 
-TODO: Update based on your project
-
 ### Frontend
-- React / Next.js / Flutter / React Native
-- TypeScript
-- TailwindCSS
 
-### Backend
-- Flask / FastAPI / Node.js / Supabase
-- Database: PostgreSQL / SQLite / MongoDB
-
-### AI/ML (if applicable)
-- LangChain / LangGraph / LlamaIndex
-- Google Gemini / OpenAI / Anthropic Claude
-- Vector Database: Weaviate / Pinecone / Chroma
-- RAG / Prompt Engineering / Agent Frameworks
-
-### Blockchain (if applicable)
-- Solidity / solana / cardano / ergo Smart Contracts
-- Hardhat / Truffle / foundry
-- Web3.js / Ethers.js / Wagmi
-- OpenZeppelin / alchemy / Infura
-
----
+- Kotlin
+- Room
+- Health Services API
+- Wear OS Data Layer API
 
 ## ✅ Project Checklist
 
-TODO: Complete applicable items based on your project type
-
-- [ ] **The protocol** (if applicable):
-   - [ ] has been described and formally specified in a paper.
-   - [ ] has had its main properties mathematically proven.
-   - [ ] has been formally verified.
-- [ ] **The smart contracts** (if applicable):
-   - [ ] were thoroughly reviewed by at least two knights of The Stable Order.
-   - [ ] were deployed to: [Add deployment details]
 - [ ] **The mobile app** (if applicable):
-   - [ ] has an _About_ page containing the Stability Nexus's logo and pointing to the social media accounts of the Stability Nexus.
-   - [ ] is available for download as a release in this repo.
-   - [ ] is available in the relevant app stores.
-- [ ] **The AI/ML components** (if applicable):
-   - [ ] LLM/model selection and configuration are documented.
-   - [ ] Prompts and system instructions are version-controlled.
-   - [ ] Content safety and moderation mechanisms are implemented.
-   - [ ] API keys and rate limits are properly managed.
-
----
+    - [ ] has an _About_ page containing the Aossie's logo and pointing to the social media accounts of the Aossie.
+    - [ ] is available for download as a release in this repo.
+    - [ ] is available in the relevant app stores.
 
 ## 🔗 Repository Links
 
-TODO: Update with your repository structure
-
-1. [Main Repository](https://github.com/AOSSIE-Org/TODO)
-2. [Frontend](https://github.com/AOSSIE-Org/TODO/tree/main/frontend) (if separate)
-3. [Backend](https://github.com/AOSSIE-Org/TODO/tree/main/backend) (if separate)
-
----
+1. [Main Repository](https://github.com/AOSSIE-Org/CarbonTracker-WatchCompanionApp)
 
 ## 🏗️ Architecture Diagram
 
-TODO: Add your system architecture diagram here
+```mermaid
+flowchart TD
+    A[Wear OS UI] --> B[Device Integrations]
+    A --> C[Local Room Database]
 
+    B --> B1[Health Services API]
+
+    C --> D[Wear OS Data Layer API]
+    D --> E[CarbonTracker Mobile App]
 ```
-[Architecture Diagram Placeholder]
-```
-
-You can create architecture diagrams using:
-- [Draw.io](https://draw.io)
-- [Excalidraw](https://excalidraw.com)
-- [Lucidchart](https://lucidchart.com)
-- [Mermaid](https://mermaid.js.org) (for code-based diagrams)
-
-Example structure to include:
-- Frontend components
-- Backend services
-- Database architecture
-- External APIs/services
-- Data flow between components
-
----
 
 ## 🔄 User Flow
 
-TODO: Add user flow diagrams showing how users interact with your application
-
-```
-[User Flow Diagram Placeholder]
+```mermaid
+flowchart TD
+    A[Open Watch App] --> B[Onboarding Page]
+    B --> C[Tap Record Button]
+    C --> D[Supported Activities]
+    D --> E[Select an Activity]
+    E --> F[Stopwatch Page]
+    F --> G[Activity Tracked via Health Services API]
+    G --> H[Stop Activity]
+    H --> I[Saved Locally in Room]
+    I --> J[Synced to Mobile App via Data Layer API]
+    J --> B
 ```
 
 ### Key User Journeys
 
-TODO: Document main user flows:
+1. **Starting an Activity**
+    - User opens the app and lands on the onboarding page
+    - Taps the record button
+    - Picks one of the supported activities
+    - Lands on the stopwatch page and the activity begins
 
-1. **User Journey 1**: Description
-   - Step 1
-   - Step 2
-   - Step 3
+2. **Tracking an Activity**
+    - Stopwatch runs while the activity is tracked using the Health Services API
+    - User stops the activity when finished
 
-2. **User Journey 2**: Description
-   - Step 1
-   - Step 2
-   - Step 3
+3. **Syncing with the Mobile App**
+    - Activities are saved locally on the watch in Room database.
+    - Activities are synced to the CarbonTracker mobile app via the Wear OS Data Layer API
+    - No data is stored on our servers
 
-3. **User Journey 3**: Description
-   - Step 1
-   - Step 2
-   - Step 3
-
----
-
-## �🍀 Getting Started
+## 🍀 Getting Started
 
 ### Prerequisites
 
-TODO: List what developers need installed
+Before setting up CarbonTracker Wear OS, make sure you have the following installed:
 
-- Node.js 18+ / Python 3.9+ / Flutter SDK
-- npm / yarn / pnpm
-- [Any specific tools or accounts needed]
+- Android Studio
+- Android SDK (installed via Android Studio)
+- JDK (bundled with Android Studio)
+- A Wear OS emulator or a physical Wear OS device
+
+Kotlin is included with Android Studio, so no separate installation is needed.
 
 ### Installation
-
-TODO: Provide detailed setup instructions
 
 #### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/AOSSIE-Org/TODO.git
-cd TODO
+git clone https://github.com/AOSSIE-Org/CarbonTracker-WatchCompanionApp.git
+cd CarbonTracker-WatchCompanionApp
 ```
 
-#### 2. Install Dependencies
+#### 2. Open the Project
+
+Open the wear folder in Android Studio (File > Open) and let Gradle finish syncing.
+
+#### 3. Build the App
+
+From the `wear` folder, build the debug APK:
 
 ```bash
-npm install
-# or
-yarn install
-# or
-pnpm install
+cd wear
+./gradlew assembleDebug
 ```
 
-#### 3. Configure Environment Variables(.env.example)
+#### 4. Run the App
 
-Create a `.env` file in the root directory:
-
-```env
-# Add your environment variables here
-API_KEY=your_api_key
-DATABASE_URL=your_database_url
-```
-
-#### 4. Run the Development Server
+First, check that your Wear OS device or emulator is detected:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
+adb devices
 ```
 
-#### 5. Open your Browser
+Then either select your Wear OS device or emulator in Android Studio and click Run, or install from the command line:
 
-Navigate to [http://localhost:3000](http://localhost:3000) to see the application.
+```bash
+./gradlew installDebug
+```
 
-For detailed setup instructions, please refer to our [Installation Guide](./docs/INSTALL_GUIDE.md) (if you have one).
+### Testing
 
----
+The project doesn't have automated tests yet.
+
+Until tests are added, verify changes manually on a Wear OS emulator or physical device:
+
+1. Start an activity from the onboarding page and confirm the stopwatch runs.
+2. Stop the activity and confirm it is saved locally.
+3. With the CarbonTracker mobile app paired, confirm the activity syncs.
+
+Sensor data from Health Services is most reliable on a physical watch, so use one when testing activity tracking.
+
+To check code quality before opening a PR, run:
+
+```bash
+./gradlew lint
+```
 
 ## 📱 App Screenshots
 
-TODO: Add screenshots showcasing your application
-
-|  |  |  |
-|---|---|---|
-| Screenshot 1 | Screenshot 2 | Screenshot 3 |
+|                                                              |                                                              |                                                            |
+|--------------------------------------------------------------|--------------------------------------------------------------|------------------------------------------------------------|
+| ![Onboarding](assets/screenshots/wear_onboarding_screen.png) | ![Activities](assets/screenshots/wear_activities_screen.png) | ![Stopwatch](assets/screenshots/wear_stopwatch_screen.png) |
 
 ---
 
@@ -254,16 +212,9 @@ TODO: Add screenshots showcasing your application
 
 Thank you for considering contributing to this project! Contributions are highly appreciated and welcomed. To ensure smooth collaboration, please refer to our [Contribution Guidelines](./CONTRIBUTING.md).
 
----
-
 ## ✨ Maintainers
 
-TODO: Add maintainer information
-
-- [Maintainer Name](https://github.com/username)
-- [Maintainer Name](https://github.com/username)
-
----
+- [Aneesa Fatima](https://github.com/aneesafatima)
 
 ## 📍 License
 
@@ -274,8 +225,8 @@ See the [LICENSE](LICENSE) file for details.
 
 ## 💪 Thanks To All Contributors
 
-Thanks a lot for spending your time helping TODO grow. Keep rocking 🥂
+Thanks a lot for spending your time helping CarbonTracker grow. Keep rocking 🥂
 
-[![Contributors](https://contrib.rocks/image?repo=AOSSIE-Org/TODO)](https://github.com/AOSSIE-Org/TODO/graphs/contributors)
+[![Contributors](https://contrib.rocks/image?repo=AOSSIE-Org/CarbonTracker)](https://github.com/AOSSIE-Org/TODO/graphs/contributors)
 
-© 2025 AOSSIE 
+© 2026 AOSSIE
