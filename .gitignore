@@ -308,6 +308,9 @@ TSWLatexianTemp*
 ./auto/*
 *.el
 
+# Untracked security reports (created by the security-review skill)
+unremediated-security-reviews/
+
 # expex forward references with \gathertags
 *-tags.tex
 
