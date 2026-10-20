@@ -17,11 +17,19 @@ class WearListenerService : WearableListenerService() {
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
+    companion object {
+
+        private const val TAG = "WearListenerService"
+        private const val MAX_PAYLOAD_BYTES = 16 * 1024
+        private const val MAX_ACKS = 500
+
+    }
+
     override fun onCreate() {
         super.onCreate()
 
         Log.d(
-            "WearListenerService",
+            TAG,
             "SERVICE CREATED"
         )
     }
@@ -30,7 +38,7 @@ class WearListenerService : WearableListenerService() {
         super.onDestroy()
         serviceScope.cancel()
         Log.d(
-            "WearListenerService",
+            TAG,
             "WEAR SERVICE DESTROYED"
         )
     }
@@ -38,14 +46,21 @@ class WearListenerService : WearableListenerService() {
     override fun onMessageReceived(messageEvent: MessageEvent) {
 
         Log.d(
-            "WearListenerService",
+            TAG,
             "MESSAGE RECEIVED: ${messageEvent.path}"
         )
+
+
+        if (messageEvent.data.size > MAX_PAYLOAD_BYTES) {
+            Log.w(TAG, "Dropping oversized message on ${messageEvent.path}")
+            return
+        }
+
 
         if (messageEvent.path == "/requestHeartRate") {
             // Handle heart rate request
             Log.d(
-                "WearListenerService",
+                TAG,
                 "Received request for heart rate"
             )
 
@@ -55,7 +70,7 @@ class WearListenerService : WearableListenerService() {
                 val supportsHeartRate = healthServicesManager.checkCapabilities()
                 if (!supportsHeartRate) {
                     Log.e(
-                        "WearListenerService",
+                        TAG,
                         "Device does not support heart rate measurement"
                     )
                     return@launch
@@ -70,13 +85,13 @@ class WearListenerService : WearableListenerService() {
                         )
                         .addOnSuccessListener {
                             Log.d(
-                                "WearListenerService",
+                                TAG,
                                 "Sent /heartData successfully"
                             )
                         }
                         .addOnFailureListener {
                             Log.e(
-                                "WearListenerService",
+                                TAG,
                                 "Failed to send /heartData",
                                 it
                             )
@@ -88,7 +103,7 @@ class WearListenerService : WearableListenerService() {
 
             // Handle exercise data request
             Log.d(
-                "WearListenerService",
+                TAG,
                 "Received request for exercise data"
             )
 
@@ -99,7 +114,7 @@ class WearListenerService : WearableListenerService() {
                 val exerciseData = exerciseManager.getUnsyncedExercises()
                 if (exerciseData == null) {
                     Log.e(
-                        "WearListenerService",
+                        TAG,
                         "Failed to fetch unsynced exercise data"
                     )
                     return@launch
@@ -109,12 +124,12 @@ class WearListenerService : WearableListenerService() {
                     Json.encodeToString(exerciseData)
 
                 } catch (e: Exception) {
-                    Log.e("WearListenerService", "Failed to encode exercise data", e)
+                    Log.e(TAG, "Failed to encode exercise data", e)
                     return@launch
                 }
 
                 Log.d(
-                    "WearListenerService",
+                    TAG,
                     "Encoded ${exerciseData.size} exercise records"
                 )
 
@@ -125,11 +140,11 @@ class WearListenerService : WearableListenerService() {
                         exerciseJson.toByteArray()
                     )
                     .addOnSuccessListener {
-                        Log.d("WearListenerService", "Sent /exerciseData successfully")
+                        Log.d(TAG, "Sent /exerciseData successfully")
                     }
                     .addOnFailureListener {
                         Log.e(
-                            "WearListenerService",
+                            TAG,
                             "Failed to send /exerciseData",
                             it
                         )
@@ -138,7 +153,7 @@ class WearListenerService : WearableListenerService() {
         } else if (messageEvent.path == "/markExercisesAsSynced") {
             // Handle mark exercises as synced request
             Log.d(
-                "WearListenerService",
+                TAG,
                 "Received request to mark exercises as synced"
             )
 
@@ -151,15 +166,36 @@ class WearListenerService : WearableListenerService() {
                     )
                 } catch (e: Exception) {
                     Log.e(
-                        "WearListenerService",
+                        TAG,
                         "Failed to decode exercise acknowledgements",
                         e
                     )
                     return@launch
                 }
 
+                if (acknowledgements.size > MAX_ACKS) {
+                    Log.w(TAG, "Too many exercise acknowledgements")
+                    return@launch
+                }
+
                 try {
                     acknowledgements.forEach { acknowledgement ->
+
+                        if (acknowledgement.id <= 0) {
+                            Log.w(TAG, "Ignoring acknowledgement with invalid ID")
+                            return@forEach
+                        }
+
+                        if (acknowledgement.lastUpdated <= 0L ||
+                            acknowledgement.lastUpdated > System.currentTimeMillis()
+                        ) {
+                            Log.w(
+                                TAG,
+                                "Ignoring acknowledgement with invalid timestamp"
+                            )
+                            return@forEach
+                        }
+
                         exerciseManager.markExercisesAsSynced(
                             acknowledgement.id,
                             acknowledgement.lastUpdated
@@ -167,12 +203,12 @@ class WearListenerService : WearableListenerService() {
                     }
 
                     Log.d(
-                        "WearListenerService",
+                        TAG,
                         "Processed ${acknowledgements.size} exercise acknowledgements"
                     )
                 } catch (e: Exception) {
                     Log.e(
-                        "WearListenerService",
+                        TAG,
                         "Failed to mark exercises as synced",
                         e
                     )
