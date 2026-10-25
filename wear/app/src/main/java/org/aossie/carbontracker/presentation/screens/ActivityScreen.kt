@@ -23,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.health.services.client.data.ExerciseType
@@ -126,20 +127,23 @@ fun ActivityScreen(navController: NavController) {
                         Text(
                             text = "No supported activities found",
                             color = SecondaryText,
-                            fontSize = 10.sp
+                            fontSize = 12.sp,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp)
+                                .transformedHeight(this, transformationSpec)
                         )
                     }
                     item {
                         OutlinedButton(
                             onClick = { retryCount++ },
                             modifier = Modifier
-                                .height(32.dp)
-                                .padding(vertical = 2.dp)
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp)
                                 .transformedHeight(this, transformationSpec),
                             transformation = SurfaceTransformation(transformationSpec),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = ActivityChipBg
-                            ),
+                            colors = ButtonDefaults.buttonColors(containerColor = ActivityChipBg),
                             border = ButtonDefaults.outlinedButtonBorder(
                                 borderColor = ActivityChipBorder,
                                 borderWidth = 1.dp,
@@ -149,7 +153,7 @@ fun ActivityScreen(navController: NavController) {
                                 Text(
                                     text = "Retry",
                                     color = SecondaryText,
-                                    fontSize = 8.sp,
+                                    fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold
                                 )
                             }

@@ -84,6 +84,7 @@ The app follows a local-first and privacy-focused approach. Activity data is sto
 ## 🔗 Repository Links
 
 1. [Main Repository](https://github.com/AOSSIE-Org/CarbonTracker-WatchCompanionApp)
+2. [Report a Bug / Issue Tracker](https://github.com/AOSSIE-Org/CarbonTracker-WatchCompanionApp/issues)
 
 ## 🏗️ Architecture Diagram
 
@@ -209,6 +210,8 @@ To check code quality before opening a PR, run:
 ## 🙌 Contributing
 
 ⭐ Don't forget to star this repository if you find it useful! ⭐
+
+🐛 Found a bug? Please [open an issue](https://github.com/AOSSIE-Org/CarbonTracker-WatchCompanionApp/issues/new) with steps to reproduce, expected vs. actual behavior, and your device/OS.
 
 Thank you for considering contributing to this project! Contributions are highly appreciated and welcomed. To ensure smooth collaboration, please refer to our [Contribution Guidelines](./CONTRIBUTING.md).
 

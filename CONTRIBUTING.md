@@ -145,6 +145,10 @@ From the `wear` folder, make sure the project builds and passes lint:
 
 Then run the app on a Wear OS emulator or device and manually test the flow you changed (for example recording an activity, the stopwatch, or syncing with the mobile app).
 
+**Automated tests (encouraged)**
+
+The project doesn't have an automated test suite yet. If your change adds or modifies logic (calculations, data handling, sync code), you're welcome to add unit tests. Make sure any tests you add pass locally before opening your PR. Pure UI tweaks and small fixes don't need new tests, but they still need the manual check above.
+
 ### 4. Commit Your Changes
 
 Write clear, concise commit messages:
