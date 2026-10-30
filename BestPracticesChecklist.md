@@ -25,15 +25,17 @@
 ## Score Summary
 
 <!-- Auto-updated by checklist-score.yml workflow — do not edit manually -->
-| Category           | Met | Total | Status |
-|--------------------|-----|-------|--------|
-| Basics             | 8   | 8     | ✅     |
-| Change Control     | 3   | 6     | 🟡     |
-| Reporting          | 8   | 8     | ✅     |
-| Quality            | 4   | 11     | 🔴     |
-| Security           | 9   | 9     | ✅     |
-| Analysis           | 1   | 7     | 🔴     |
-| **Total**          | **33** | **49** | **67%** |
+
+| Category       | Met    | Total  | Status  |
+|----------------|--------|--------|---------|
+| Basics         | 8      | 8      | ✅       |
+| Change Control | 3      | 6      | 🟡      |
+| Reporting      | 8      | 8      | ✅       |
+| Quality        | 4      | 11     | 🔴      |
+| Security       | 9      | 9      | ✅       |
+| Analysis       | 1      | 7      | 🔴      |
+| **Total**      | **33** | **49** | **67%** |
+
 ---
 
 ## 🏗️ Basics
@@ -67,7 +69,7 @@
 
 - [~] 🔴 **documentation_interface** — Reference documentation describes the external interface (API
   inputs/outputs, CLI flags, config schema, etc.).
-    - *Evidence URL:* `[ ]` N/A — *Justification:* CarbonTracker Wear OS is an end-user watch
+    - *Evidence URL:* N/A - *Justification:* CarbonTracker Wear OS is an end-user watch
       application and does not expose a public API, CLI, or external configuration interface
       requiring reference documentation. Its only inter-device communication is the internal Wear OS
       Data Layer sync with the CarbonTracker mobile app, which is not a public interface.
@@ -81,7 +83,7 @@
 
 - [x] 🟡 **english** — Documentation is provided in English and English bug reports/comments are
   accepted.
-    - *Note:*
+    - *Note:* Documentation and issue tracking are in English
 
 ---
 
@@ -113,7 +115,7 @@
 
 - [~] 🔴 **release_notes_vulns** — Release notes identify every publicly known vulnerability (with
   CVE) fixed in that release.
-    - *Evidence URL:* `[ ]` N/A — *Justification (no publicly known vulns / users can't
+    - *Evidence URL:* N/A — *Justification (no publicly known vulns / users can't
       self-update):*
 
 ---
@@ -174,7 +176,7 @@
 
 - [ ] 🔵 **build_common_tools** — Common build tools are used (npm, pip, cargo, make, gradle, etc.).
   *(SUGGESTED)*
-    - *Evidence URL:* `[ ]` N/A
+    - *Evidence URL:* N/A
 
 - [x] 🟡 **build_floss_tools** — The project can be built using only FLOSS tools.
     - *Note:* The project can be built using only FLOSS tools.
@@ -224,7 +226,6 @@
     - *Tool used:* Android Lint (`./gradlew lint`)
 
 - [x] 🔴 **warnings_fixed** — Warnings from the linter are addressed (not suppressed without reason).
-    - *Note:* Warnings from the linter are addressed (not suppressed without reason).
     - *Note:* Lint reports 0 errors. Code-level warnings were fixed. The remaining 14 are dependency
       "newer version available" notices and one intentional launcher-icon notice (adaptive XML plus
       bitmaps, both in use). The only suppression is a documented entry in `app/lint.xml` for the
@@ -262,27 +263,27 @@
 
 - [~] 🔴 **crypto_published** — Only publicly reviewed cryptographic protocols/algorithms are used by
   default.
-    - *Note:* `[ ]` N/A
+    - *Note:* N/A
 
 - [~] 🟡 **crypto_call** — Project calls an established crypto library rather than reimplementing
   crypto functions.
-    - *Library used:* `[ ]` N/A
+    - *Library used:* N/A
 
 - [~] 🔴 **crypto_working** — No broken algorithms (MD4, MD5, single DES, RC4, Dual_EC_DRBG) used
   unless required for interoperability (must be documented).
-    - *Note:* `[ ]` N/A
+    - *Note:* N/A
 
 - [~] 🔴 **crypto_keylength** — Key lengths
   meet [NIST 2030 minimums](https://www.keylength.com/en/4/) by default.
-    - *Note:* `[ ]` N/A
+    - *Note:* N/A
 
 - [~] 🔴 **crypto_password_storage** — Passwords for external users are stored as iterated salted
   hashes (Argon2id, bcrypt, scrypt, PBKDF2).
-    - *Note:* `[ ]` N/A — *Justification (project doesn't store passwords):*
+    - *Note:* `N/A — *Justification (project doesn't store passwords):*
 
 - [~] 🔴 **crypto_random** — Cryptographic keys and nonces are generated using a CSPRNG; insecure
   generators (Math.random, rand()) are NOT used for security purposes.
-    - *Note:* `[ ]` N/A
+    - *Note:* N/A
 
 - [~] 🟡 **delivery_unsigned** — Cryptographic hashes are NOT retrieved over plain HTTP without a
   signature check.
@@ -297,9 +298,11 @@
 - [x] 🔴 **static_analysis_fixed** — All medium+ severity vulnerabilities found by static analysis
   are fixed in a timely manner after confirmation.
     - *Note:* Static analysis is done with Android Lint (`./gradlew lint`), plus an AI-assisted
-      security review of the Wear OS source code. All vulnerabilities found were addressed; the report is
-      committed to the repo: https://github.com/AOSSIE-Org/CarbonTracker-WatchCompanionApp/pull/33. Any confirmed medium+ findings in future
-      will be fixed promptly.
+      security review of the Wear OS source code. All findings were addressed except one
+      medium-severity database storage finding, which was not remediated and whose residual
+      risk was accepted; the report is committed to the repo:
+      https://github.com/AOSSIE-Org/CarbonTracker-WatchCompanionApp/pull/33.
+      Any confirmed medium+ findings in future will be fixed promptly.
 
 - [ ] 🔵 **static_analysis_common_vulnerabilities** — The static analysis tool includes checks for
   common vulnerabilities in the language/environment (e.g., eslint-plugin-security, bandit,
@@ -320,9 +323,9 @@
   enabled (not just production mode). *(SUGGESTED)*
     - *Note:*
 
-- [ ] 🔴 **dynamic_analysis_fixed** — Medium+ severity vulnerabilities found by dynamic analysis are
+- [~] 🔴 **dynamic_analysis_fixed** — Medium+ severity vulnerabilities found by dynamic analysis are
   fixed in a timely manner.
-    - *Note:* `[x]` N/A (no dynamic analysis tooling is used; manual use of the app has not surfaced
+    - *Note:* N/A (no dynamic analysis tooling is used; manual use of the app has not surfaced
       any vulnerabilities, and any found would be fixed promptly)
 
 - [ ] 🔵 **dynamic_analysis_unsafe** — If the project uses memory-unsafe languages (C/C++), memory
@@ -333,7 +336,8 @@
 
 ## 📎 Project-Specific Notes
 
-> Not applicable — CarbonTracker watch app is a wear OS application and is not a Web3, Full-Stack, or
+> Not applicable — CarbonTracker watch app is a wear OS application and is not a Web3, Full-Stack,
+> or
 > AI project.
 
 ### Web3 / Solidity Notes
