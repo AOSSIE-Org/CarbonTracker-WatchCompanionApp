@@ -23,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.health.services.client.data.ExerciseType
@@ -48,9 +49,14 @@ import androidx.wear.compose.material3.SurfaceTransformation
 import androidx.wear.compose.material3.lazy.rememberTransformationSpec
 import androidx.wear.compose.material3.lazy.transformedHeight
 import org.aossie.carbontracker.presentation.ui.Cream
+import com.google.android.horologist.compose.layout.ColumnItemType
+import com.google.android.horologist.compose.layout.rememberResponsiveColumnPadding
+import org.aossie.carbontracker.presentation.ui.scaleFactor
 
 @Composable
 fun ActivityScreen(navController: NavController) {
+
+    val s = scaleFactor()
 
     var activities by remember {
         mutableStateOf<List<ExerciseType>>(emptyList())
@@ -62,6 +68,11 @@ fun ActivityScreen(navController: NavController) {
     val listState = rememberTransformingLazyColumnState()
     val transformationSpec = rememberTransformationSpec()
 
+    val contentPadding = rememberResponsiveColumnPadding(
+        first = ColumnItemType.ListHeader,
+        last = ColumnItemType.Button,
+    )
+
     val context = LocalContext.current
 
     LaunchedEffect(retryCount) {
@@ -72,6 +83,7 @@ fun ActivityScreen(navController: NavController) {
 
     ScreenScaffold(
         scrollState = listState,
+        contentPadding = contentPadding,
         scrollIndicator = {
             ScrollIndicator(
                 state = listState,
@@ -94,14 +106,14 @@ fun ActivityScreen(navController: NavController) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = "Pick an activity",
-                            fontSize = 12.sp,
+                            fontSize = (12 * s).sp,
                             color = Cream,
                             fontWeight = FontWeight.Bold,
                         )
                         Spacer(modifier = Modifier.height(2.dp))
                         Box(
                             modifier = Modifier
-                                .width(90.dp)
+                                .width((90 * s).dp)
                                 .height(1.dp)
                                 .background(PrimaryGreen)
                         )
@@ -126,20 +138,23 @@ fun ActivityScreen(navController: NavController) {
                         Text(
                             text = "No supported activities found",
                             color = SecondaryText,
-                            fontSize = 10.sp
+                            fontSize = (12 * s).sp,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp)
+                                .transformedHeight(this, transformationSpec)
                         )
                     }
                     item {
                         OutlinedButton(
                             onClick = { retryCount++ },
                             modifier = Modifier
-                                .height(32.dp)
-                                .padding(vertical = 2.dp)
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp)
                                 .transformedHeight(this, transformationSpec),
                             transformation = SurfaceTransformation(transformationSpec),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = ActivityChipBg
-                            ),
+                            colors = ButtonDefaults.buttonColors(containerColor = ActivityChipBg),
                             border = ButtonDefaults.outlinedButtonBorder(
                                 borderColor = ActivityChipBorder,
                                 borderWidth = 1.dp,
@@ -149,7 +164,7 @@ fun ActivityScreen(navController: NavController) {
                                 Text(
                                     text = "Retry",
                                     color = SecondaryText,
-                                    fontSize = 8.sp,
+                                    fontSize = (12 * s).sp,
                                     fontWeight = FontWeight.Bold
                                 )
                             }
@@ -174,20 +189,20 @@ fun ActivityScreen(navController: NavController) {
                                             ActivityIconBg,
                                             shape = RoundedCornerShape(50)
                                         )
-                                        .padding(5.dp)
+                                        .padding((5 * s).dp)
                                 )
                             },
                             label = {
                                 Text(
                                     activityInfo[exercise]?.name ?: "Unknown",
-                                    fontSize = 12.sp,
+                                    fontSize = (12 * s).sp,
                                     color = Cream
                                 )
                             },
                             secondaryLabel = {
                                 Text(
                                     text = activityInfo[exercise]?.intensity ?: "Unknown",
-                                    fontSize = 10.sp,
+                                    fontSize = (10 * s).sp,
                                     color = SecondaryText
                                 )
                             },
