@@ -68,7 +68,6 @@ class HealthServicesManager() {
                 val heartRateData = data.getData(DataType.HEART_RATE_BPM)
                 if (heartRateData.isNotEmpty() && !alreadyResponded) {
                     val value = heartRateData.last().value
-                    Log.d("HealthServices", "Received heart rate data: $value")
 
                     alreadyResponded = true
                     measureClient.unregisterMeasureCallbackAsync(DataType.HEART_RATE_BPM, this)

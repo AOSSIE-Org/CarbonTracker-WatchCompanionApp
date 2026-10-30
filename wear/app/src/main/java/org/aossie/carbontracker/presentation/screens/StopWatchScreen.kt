@@ -64,9 +64,12 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import org.aossie.carbontracker.presentation.ui.Cream
+import org.aossie.carbontracker.presentation.ui.scaleFactor
 
 @Composable
 fun StopwatchScreen(exerciseType: ExerciseType) {
+
+    val s = scaleFactor()
 
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -158,16 +161,16 @@ fun StopwatchScreen(exerciseType: ExerciseType) {
                 Text(
                     text = "Please grant all required permissions to use the stopwatch.",
                     color = LabelGray,
-                    fontSize = 14.sp,
-                    modifier = Modifier.padding(16.dp),
+                    fontSize = (12 * s).sp,
+                    modifier = Modifier.padding((12 * s).dp),
                     textAlign = TextAlign.Center
                 )
                 Text(
                     "Grant Permissions",
                     color = PrimaryGreen,
-                    fontSize = 14.sp,
+                    fontSize = (12 * s).sp,
                     modifier = Modifier
-                        .padding(16.dp)
+                        .padding((12 * s).dp)
                         .clickable { permissionLauncher.launch(requiredPermissions.toTypedArray()) })
             }
         } else {
@@ -177,21 +180,21 @@ fun StopwatchScreen(exerciseType: ExerciseType) {
                 Text(
                     text = "TIME ELAPSED",
                     color = LabelGray,
-                    fontSize = 13.sp,
+                    fontSize = (11 * s).sp,
                 )
 
                 Text(
                     text = formatElapsed(elapsedMillis),
                     color = Cream,
-                    fontSize = 34.sp,
+                    fontSize = (30 * s).sp,
                     fontWeight = FontWeight.Medium,
-                    modifier = Modifier.padding(top = 6.dp, bottom = 20.dp),
+                    modifier = Modifier.padding(top = (4 * s).dp, bottom = (14 * s).dp),
                 )
 
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    horizontalArrangement = Arrangement.spacedBy((6 * s).dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 18.dp)
+                    modifier = Modifier.padding(horizontal = (14 * s).dp)
                 ) {
                     if (ongoingActivity) {
                         Column(
@@ -205,7 +208,7 @@ fun StopwatchScreen(exerciseType: ExerciseType) {
                                 iconColor = StopRed,
                                 icon = Icons.Filled.Stop,
                                 contentDescription = "Stop",
-                                diameter = 46.dp,
+                                diameter = (40 * s).dp,
                                 onClick = {
 
                                     exerciseService?.let { service ->
@@ -242,7 +245,7 @@ fun StopwatchScreen(exerciseType: ExerciseType) {
                             iconColor = Color.White,
                             icon = Icons.Filled.PlayArrow,
                             contentDescription = "Start",
-                            diameter = 54.dp,
+                            diameter = (48 * s).dp,
                             onClick = {
                                 exerciseService?.let { service ->
                                     coroutineScope.launch {
@@ -282,7 +285,7 @@ fun StopwatchScreen(exerciseType: ExerciseType) {
                                 iconColor = PauseIconColor,
                                 icon = Icons.Filled.Pause,
                                 contentDescription = "Pause",
-                                diameter = 46.dp,
+                                diameter = (40 * s).dp,
                                 onClick = {
                                     exerciseService?.let { service ->
                                         coroutineScope.launch {

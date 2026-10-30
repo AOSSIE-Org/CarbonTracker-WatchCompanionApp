@@ -6,6 +6,11 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.kotlin.serialization)
+    id("androidx.room3")
+}
+
+room3 {
+    schemaDirectory("$projectDir/schemas")
 }
 
 
@@ -28,8 +33,8 @@ android {
         applicationId = "org.aossie.carbontracker"
         minSdk = 30
         targetSdk = 36
-        versionCode = 4
-        versionName = (project.findProperty("versionName") as String?) ?: "1.0.0"
+        versionCode = 11
+        versionName = (project.findProperty("versionName") as String?) ?: "1.0.2"
 
     }
 
@@ -65,6 +70,7 @@ android {
         compose = true
     }
 }
+
 
 dependencies {
 

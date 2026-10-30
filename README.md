@@ -51,9 +51,11 @@
 <h1>CarbonTracker Wear OS</h1>
 </div>
 
-CarbonTracker Wear OS is the smartwatch companion of the CarbonTracker mobile application. It lets users record fitness activities directly from their wrist and syncs them with the mobile app.
+CarbonTracker Wear OS is the smartwatch companion of the CarbonTracker mobile application. It lets
+users record fitness activities directly from their wrist and syncs them with the mobile app.
 
-The app follows a local-first and privacy-focused approach. Activity data is stored on the watch and is never sent to any of our servers.
+The app follows a local-first and privacy-focused approach. Activity data is stored on the watch and
+is never sent to any of our servers.
 
 ## Features
 
@@ -76,14 +78,16 @@ The app follows a local-first and privacy-focused approach. Activity data is sto
 
 ## ✅ Project Checklist
 
-- [ ] **The mobile app** (if applicable):
-    - [ ] has an _About_ page containing the Aossie's logo and pointing to the social media accounts of the Aossie.
-    - [ ] is available for download as a release in this repo.
+- [ ] **The watch app** (if applicable):
+    - [x] has an _About_ page containing the Aossie's logo and pointing to the social media accounts
+      of the Aossie.
+    - [x] is available for download as a release in this repo.
     - [ ] is available in the relevant app stores.
 
 ## 🔗 Repository Links
 
 1. [Main Repository](https://github.com/AOSSIE-Org/CarbonTracker-WatchCompanionApp)
+2. [Report a Bug / Issue Tracker](https://github.com/AOSSIE-Org/CarbonTracker-WatchCompanionApp/issues)
 
 ## 🏗️ Architecture Diagram
 
@@ -174,7 +178,8 @@ First, check that your Wear OS device or emulator is detected:
 adb devices
 ```
 
-Then either select your Wear OS device or emulator in Android Studio and click Run, or install from the command line:
+Then either select your Wear OS device or emulator in Android Studio and click Run, or install from
+the command line:
 
 ```bash
 ./gradlew installDebug
@@ -190,7 +195,8 @@ Until tests are added, verify changes manually on a Wear OS emulator or physical
 2. Stop the activity and confirm it is saved locally.
 3. With the CarbonTracker mobile app paired, confirm the activity syncs.
 
-Sensor data from Health Services is most reliable on a physical watch, so use one when testing activity tracking.
+Sensor data from Health Services is most reliable on a physical watch, so use one when testing
+activity tracking.
 
 To check code quality before opening a PR, run:
 
@@ -210,7 +216,13 @@ To check code quality before opening a PR, run:
 
 ⭐ Don't forget to star this repository if you find it useful! ⭐
 
-Thank you for considering contributing to this project! Contributions are highly appreciated and welcomed. To ensure smooth collaboration, please refer to our [Contribution Guidelines](./CONTRIBUTING.md).
+🐛 Found a bug?
+Please [open an issue](https://github.com/AOSSIE-Org/CarbonTracker-WatchCompanionApp/issues/new)
+with steps to reproduce, expected vs. actual behavior, and your device/OS.
+
+Thank you for considering contributing to this project! Contributions are highly appreciated and
+welcomed. To ensure smooth collaboration, please refer to
+our [Contribution Guidelines](./CONTRIBUTING.md).
 
 ## ✨ Maintainers
 
@@ -223,10 +235,14 @@ See the [LICENSE](LICENSE) file for details.
 
 ---
 
+## 🔒 OpenSSF Scorecard
+
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/AOSSIE-Org/CarbonTracker-WatchCompanionApp/badge)](https://scorecard.dev/viewer/?uri=github.com/AOSSIE-Org/CarbonTracker-WatchCompanionApp)
+
 ## 💪 Thanks To All Contributors
 
 Thanks a lot for spending your time helping CarbonTracker grow. Keep rocking 🥂
 
-[![Contributors](https://contrib.rocks/image?repo=AOSSIE-Org/CarbonTracker)](https://github.com/AOSSIE-Org/TODO/graphs/contributors)
+[![Contributors](https://contrib.rocks/image?repo=AOSSIE-Org/CarbonTracker-WatchCompanionApp)](https://github.com/AOSSIE-Org/CarbonTracker-WatchCompanionApp/graphs/contributors)
 
 © 2026 AOSSIE

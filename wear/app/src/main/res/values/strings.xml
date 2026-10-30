@@ -1,4 +1,3 @@
 <resources>
     <string name="app_name">CarbonTracker</string>
-    <string name="hello_world">Hello, %1$s!</string>
 </resources>
