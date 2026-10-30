@@ -23,11 +23,15 @@ import androidx.wear.compose.material3.Text
 import androidx.wear.compose.material3.TimeText
 import org.aossie.carbontracker.presentation.ui.Cream
 import org.aossie.carbontracker.presentation.ui.OnPrimary
+import org.aossie.carbontracker.presentation.ui.scaleFactor
 
 @Composable
 fun OnboardingScreen(
     navController: NavController
 ) {
+
+    val s = scaleFactor()
+
     ScreenScaffold(timeText = {
         TimeText(
         )
@@ -45,15 +49,15 @@ fun OnboardingScreen(
                 contentDescription = "Leaf",
                 tint = Cream,
                 modifier = Modifier
-                    .size(50.dp)
-                    .padding(bottom = 8.dp)
+                    .size((40 * s).dp)
+                    .padding(bottom = (4 * s).dp)
             )
 
 
             Text(
                 text = "CarbonTracker",
                 fontWeight = FontWeight.ExtraBold,
-                fontSize = 20.sp,
+                fontSize = (18 * s).sp,
                 color = Cream,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
@@ -61,16 +65,21 @@ fun OnboardingScreen(
                 text = "Ready to make your move for the planet?",
                 textAlign = TextAlign.Center,
                 color = Cream,
-                fontSize = 12.sp,
+                fontSize = (11 * s).sp,
                 fontWeight = FontWeight.Thin,
-                modifier = Modifier.padding(bottom = 16.dp, start = 24.dp, end = 24.dp)
+                modifier = Modifier.padding(
+                    bottom = (8 * s).dp,
+                    start = (22 * s).dp,
+                    end = (22 * s).dp
+                )
+
             )
             Button(
                 onClick = { navController.navigate("activity") },
                 modifier = Modifier
                     .height(40.dp),
             ) {
-                Text(text = "RECORD ACTIVITY", fontSize = 10.sp, color = OnPrimary)
+                Text(text = "RECORD ACTIVITY", fontSize = (10 * s).sp, color = OnPrimary)
             }
         }
     }

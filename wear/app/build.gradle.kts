@@ -28,8 +28,8 @@ android {
         applicationId = "org.aossie.carbontracker"
         minSdk = 30
         targetSdk = 36
-        versionCode = 6
-        versionName = (project.findProperty("versionName") as String?) ?: "1.0.0"
+        versionCode = 11
+        versionName = (project.findProperty("versionName") as String?) ?: "1.0.2"
 
     }
 
